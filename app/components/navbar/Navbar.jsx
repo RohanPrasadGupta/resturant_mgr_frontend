@@ -27,16 +27,34 @@ import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import PersonIcon from "@mui/icons-material/Person";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./navbarStyle.module.scss";
 import { useQuery } from "@tanstack/react-query";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  loginUserRedux,
+  logoutUserRedux,
+  updateTableNumberRedux,
+} from "../../redux/storeSlice/loginUserSlice";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedTable, setSelectedTable] = useState("");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
+  const userData = useSelector((state) => state.selectedUser.value);
+
+  const userType =
+    userData.tableNumber ||
+    (typeof window !== "undefined" &&
+      localStorage.getItem("mgrUserData") &&
+      JSON.parse(localStorage.getItem("mgrUserData")));
+
+  const isCustomer =
+    userType.username === "customer" || userData.username === "customer";
 
   const isActive = (path) => pathname === path;
 
@@ -53,22 +71,34 @@ const Navbar = () => {
       ),
   });
 
+  // Get table from URL parameters or localStorage
   useEffect(() => {
-    // Get previously selected table from localStorage if available
-    const savedTableId = localStorage.getItem("selectedTableId");
-    if (savedTableId) {
-      setSelectedTable(savedTableId);
+    const tableNumber = searchParams.get("tableNumber");
+    const username = searchParams.get("username");
+    if (tableNumber && username) {
+      dispatch(
+        loginUserRedux({ username: username, tableNumber: tableNumber })
+      );
+      localStorage.setItem(
+        "mgrUserData",
+        JSON.stringify({ username, tableNumber })
+      );
     }
-  }, []);
+  }, [searchParams]);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
   };
 
   const handleTableChange = (event) => {
-    setSelectedTable(event.target.value);
-    // Store selected table in localStorage for persistence
-    localStorage.setItem("selectedTableId", event.target.value);
+    dispatch(updateTableNumberRedux(event.target.value));
+    localStorage.setItem(
+      "mgrUserData",
+      JSON.stringify({
+        username: userData.username,
+        tableNumber: event.target.value,
+      })
+    );
   };
 
   const navItems = [
@@ -101,45 +131,51 @@ const Navbar = () => {
 
         <ListItem>
           <Box className={styles.mobileTableSelect}>
-            <FormControl fullWidth variant="outlined" size="small">
-              <InputLabel
-                id="mobile-table-select-label"
-                className={styles.tableSelectLabel}
-              >
-                Select Table
-              </InputLabel>
-              <Select
-                labelId="mobile-table-select-label"
-                value={selectedTable}
-                onChange={handleTableChange}
-                label="Select Table"
-                className={styles.mobileTableSelectInput}
-                startAdornment={
-                  <TableRestaurantIcon className={styles.tableIcon} />
-                }
-                disabled={isPending}
-              >
-                <MenuItem value="">
-                  <em>None</em>
-                </MenuItem>
-                {tables &&
-                  tables.map((table) => (
-                    <MenuItem
-                      key={table._id}
-                      value={table._id}
-                      disabled={table.status !== "available"}
-                    >
-                      {table.number}{" "}
-                      {table.status !== "available" && `(${table.status})`}
+            {userData && userData.username === "customer" ? (
+              <div className={styles.customerName}>{userData.tableNumber}</div>
+            ) : (
+              <>
+                <FormControl fullWidth variant="outlined" size="small">
+                  <InputLabel
+                    id="mobile-table-select-label"
+                    className={styles.tableSelectLabel}
+                  >
+                    Select Table
+                  </InputLabel>
+                  <Select
+                    labelId="mobile-table-select-label"
+                    value={userData.tableNumber}
+                    onChange={handleTableChange}
+                    label="Select Table"
+                    className={styles.mobileTableSelectInput}
+                    startAdornment={
+                      <TableRestaurantIcon className={styles.tableIcon} />
+                    }
+                    disabled={isPending}
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
                     </MenuItem>
-                  ))}
-              </Select>
-            </FormControl>
-            {isPending && (
-              <CircularProgress
-                size={20}
-                className={styles.tableSelectLoader}
-              />
+                    {tables &&
+                      tables.map((table) => (
+                        <MenuItem
+                          key={table._id}
+                          value={table._id}
+                          disabled={table.status !== "available"}
+                        >
+                          {table.number}{" "}
+                          {table.status !== "available" && `(${table.status})`}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+                {isPending && (
+                  <CircularProgress
+                    size={20}
+                    className={styles.tableSelectLoader}
+                  />
+                )}
+              </>
             )}
           </Box>
         </ListItem>
@@ -172,45 +208,59 @@ const Navbar = () => {
         <Box className={styles.navSection}>
           {!isMobile && (
             <Box className={styles.tableSelectWrapper}>
-              <FormControl
-                variant="outlined"
-                size="small"
-                className={styles.tableSelectContainer}
-                error={isError}
-              >
-                <InputLabel
-                  id="table-select-label"
-                  className={styles.tableSelectLabel}
+              {isCustomer ? (
+                // For customers, just show their table number without the dropdown
+                <Box className={styles.customerTableDisplay}>
+                  <TableRestaurantIcon className={styles.tableIcon} />
+                  <Typography variant="body2">
+                    Table:{" "}
+                    {userData.tableNumber === ""
+                      ? userType.tableNumber
+                      : userData.tableNumber}
+                  </Typography>
+                </Box>
+              ) : (
+                // For staff/admin, show the full dropdown
+                <FormControl
+                  variant="outlined"
+                  size="small"
+                  className={styles.tableSelectContainer}
+                  error={isError}
                 >
-                  Table
-                </InputLabel>
-                <Select
-                  labelId="table-select-label"
-                  value={selectedTable}
-                  onChange={handleTableChange}
-                  label="Table"
-                  className={styles.tableSelect}
-                  startAdornment={
-                    <TableRestaurantIcon className={styles.tableIcon} />
-                  }
-                  disabled={isPending}
-                >
-                  <MenuItem value="">
-                    <em>Select Table</em>
-                  </MenuItem>
-                  {tables &&
-                    tables.map((table) => (
-                      <MenuItem
-                        key={table._id}
-                        value={table._id}
-                        disabled={table.status !== "available"}
-                      >
-                        {table.number}{" "}
-                        {table.status !== "available" && `(${table.status})`}
-                      </MenuItem>
-                    ))}
-                </Select>
-              </FormControl>
+                  <InputLabel
+                    id="table-select-label"
+                    className={styles.tableSelectLabel}
+                  >
+                    Table
+                  </InputLabel>
+                  <Select
+                    labelId="table-select-label"
+                    value={userData.tableNumber}
+                    onChange={handleTableChange}
+                    label="Table"
+                    className={styles.tableSelect}
+                    startAdornment={
+                      <TableRestaurantIcon className={styles.tableIcon} />
+                    }
+                    disabled={isPending}
+                  >
+                    <MenuItem value="">
+                      <em>Select Table</em>
+                    </MenuItem>
+                    {tables &&
+                      tables.map((table) => (
+                        <MenuItem
+                          key={table._id}
+                          value={table._id}
+                          disabled={table.status !== "available"}
+                        >
+                          {table.number}{" "}
+                          {table.status !== "available" && `(${table.status})`}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </FormControl>
+              )}
 
               {isPending && (
                 <CircularProgress
@@ -250,18 +300,30 @@ const Navbar = () => {
                   </Button>
                 </Link>
               ))}
-              <Link href="/signin" className={styles.navLink}>
-                <Button
-                  variant="contained"
-                  color="primary"
-                  className={`${styles.signInButton} ${
-                    isActive("/signin") ? styles.activeSignInButton : ""
-                  }`}
-                  startIcon={<PersonIcon />}
+              {isCustomer ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
                 >
-                  Sign In
-                </Button>
-              </Link>
+                  <AccountCircleIcon />
+                </Box>
+              ) : (
+                <Link href="/signin" className={styles.navLink}>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className={`${styles.signInButton} ${
+                      isActive("/signin") ? styles.activeSignInButton : ""
+                    }`}
+                    startIcon={<PersonIcon />}
+                  >
+                    Sign In
+                  </Button>
+                </Link>
+              )}
             </Box>
           )}
         </Box>

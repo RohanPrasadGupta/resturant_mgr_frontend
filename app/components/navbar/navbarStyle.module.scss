@@ -311,3 +311,34 @@
     transform: translateY(-50%);
   }
 }
+
+// Add to navbarStyle.module.scss
+.customerTableDisplay {
+  display: flex;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 8px;
+  padding: 7px 12px;
+  margin-right: 16px;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.23);
+
+  .tableIcon {
+    margin-right: 8px;
+    font-size: 1.2rem;
+  }
+}
+
+.customerName {
+  display: flex;
+  align-items: center;
+  color: white;
+  font-weight: 500;
+
+  &::before {
+    content: "Table: ";
+    margin-right: 4px;
+    opacity: 0.8;
+    font-weight: normal;
+  }
+}
