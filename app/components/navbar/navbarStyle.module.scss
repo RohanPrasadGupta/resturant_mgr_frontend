@@ -1,0 +1,313 @@
+.appBar {
+  background: linear-gradient(90deg, #ff5722, #ff9800) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0 16px !important;
+
+  @media (min-width: 600px) {
+    padding: 0 24px !important;
+  }
+}
+
+.brand {
+  font-weight: 700 !important;
+  font-size: 1.5rem !important;
+  letter-spacing: 0.5px !important;
+  color: white !important;
+  user-select: none;
+  position: relative;
+  margin-right: 16px !important;
+
+  &::after {
+    content: "🍽️";
+    margin-left: 6px;
+    font-size: 1.2rem;
+  }
+}
+
+.brandLink {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.03);
+  }
+}
+
+.navSection {
+  display: flex;
+  align-items: center;
+}
+
+.desktopMenu {
+  display: flex;
+  gap: 8px;
+}
+
+.navLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.navButton {
+  padding: 6px 16px !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+  color: white !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-2px);
+  }
+
+  &.activeButton {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 3px;
+      background-color: white;
+      border-radius: 3px;
+    }
+  }
+}
+
+.menuButton {
+  color: white !important;
+  padding: 8px !important;
+  margin-right: -8px !important;
+}
+
+.drawer {
+  width: 240px;
+}
+
+.drawerContainer {
+  width: 240px;
+  padding-top: 16px;
+  background: linear-gradient(135deg, #ff5722, #ff9800);
+  height: 100%;
+  color: white;
+}
+
+.mobileLink {
+  text-decoration: none;
+  color: white;
+  display: block;
+  width: 100%;
+}
+
+.listItemContent {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+.listItemText {
+  margin: 0 !important;
+
+  span {
+    font-weight: 500 !important;
+    letter-spacing: 0.5px !important;
+  }
+}
+
+.activeItem {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  position: relative;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background-color: white;
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+// Animations
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.signInButton {
+  padding: 6px 16px !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+  background-color: white !important;
+  color: #ff9800 !important;
+  margin-left: 8px !important;
+  box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1) !important;
+
+  &:hover {
+    background-color: #f9f9f9 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  &.activeSignInButton {
+    background-color: #f9f9f9 !important;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 3px;
+      background-color: #ff9800;
+      border-radius: 3px;
+    }
+  }
+}
+
+.divider {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  margin: 8px 16px !important;
+}
+
+// Add these styles to your navbarStyle.module.scss file
+
+.tableSelectWrapper {
+  position: relative;
+  margin-right: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.tableSelectContainer {
+  margin-right: 8px !important;
+  min-width: 140px !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px !important;
+  transition: background-color 0.2s ease !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.25) !important;
+  }
+}
+
+.tableSelect {
+  color: white !important;
+
+  svg {
+    fill: white !important;
+  }
+
+  .MuiOutlinedInput-notchedOutline {
+    border-color: rgba(255, 255, 255, 0.5) !important;
+  }
+
+  &:hover .MuiOutlinedInput-notchedOutline {
+    border-color: white !important;
+  }
+
+  &.Mui-focused .MuiOutlinedInput-notchedOutline {
+    border-color: white !important;
+  }
+}
+
+.tableSelectLabel {
+  color: rgba(255, 255, 255, 0.7) !important;
+
+  &.Mui-focused {
+    color: white !important;
+  }
+}
+
+.tableIcon {
+  margin-right: 8px !important;
+  font-size: 1.2rem !important;
+  color: white !important;
+}
+
+.tableSelectLoader {
+  margin-left: -20px;
+  color: white !important;
+}
+
+.mobileTableSelect {
+  width: 100%;
+  padding: 8px 16px;
+  position: relative;
+
+  .MuiInputLabel-root {
+    color: white !important;
+    opacity: 0.9;
+  }
+
+  .MuiOutlinedInput-root {
+    background-color: rgba(255, 255, 255, 0.1);
+
+    .MuiOutlinedInput-notchedOutline {
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    &:hover .MuiOutlinedInput-notchedOutline {
+      border-color: rgba(255, 255, 255, 0.7) !important;
+    }
+
+    &.Mui-focused .MuiOutlinedInput-notchedOutline {
+      border-color: white !important;
+    }
+  }
+
+  .MuiSelect-select {
+    color: white !important;
+  }
+}
+
+.mobileTableSelectInput {
+  color: white !important;
+
+  svg {
+    fill: white !important;
+  }
+}
+
+/* Media queries for proper spacing on mobile */
+@media (max-width: 600px) {
+  .mobileTableSelect {
+    margin-top: 8px;
+    margin-bottom: 8px;
+  }
+
+  .tableSelectLoader {
+    position: absolute;
+    right: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+}

@@ -1,0 +1,369 @@
+.homepageContainer {
+  padding-top: 32px;
+  padding-bottom: 64px;
+  background-color: #f9f9f9;
+  min-height: 100vh;
+  width: 100%;
+  max-width: 100% !important;
+  margin: 0;
+  padding-left: 0;
+  padding-right: 0;
+  transition: padding 0.3s ease;
+  position: relative;
+  overflow-x: hidden;
+
+  // Make the container take the full width available
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #f9f9f9;
+    z-index: -1;
+    width: 100vw;
+    min-height: 100vh;
+  }
+}
+
+.headerSection {
+  text-align: center;
+  margin-bottom: 40px;
+  animation: fadeIn 0.8s ease-in-out;
+  padding: 0 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.mainTitle {
+  font-weight: 700 !important;
+  margin-bottom: 8px !important;
+  background: linear-gradient(45deg, #ff5722, #ff9800);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  display: inline-block;
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, #ff5722, #ff9800);
+    border-radius: 2px;
+  }
+}
+
+.subtitle {
+  color: #666;
+  max-width: 700px;
+  margin: 0 auto !important;
+  margin-top: 16px !important;
+}
+
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 32px;
+  animation: slideInUp 0.6s ease-out;
+  padding: 0 16px;
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.searchField {
+  width: 100%;
+  max-width: 500px;
+  margin-bottom: 24px !important;
+  transition: all 0.3s ease;
+
+  input {
+    padding: 12px 14px;
+  }
+}
+
+.categoryTabs {
+  margin-bottom: 16px;
+  background-color: white;
+  border-radius: 28px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 4px;
+  min-height: 48px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  transition: all 0.3s ease;
+
+  &::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #ddd;
+    border-radius: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #ccc;
+  }
+}
+
+.categoryTab {
+  min-width: 100px;
+  min-height: 40px;
+  border-radius: 20px !important;
+  margin: 0 4px;
+  text-transform: capitalize !important;
+  font-weight: 600 !important;
+  transition: background-color 0.3s ease, color 0.3s ease !important;
+  padding: 0 16px;
+
+  &[aria-selected="true"] {
+    background-color: #ff9800;
+    color: white !important;
+  }
+}
+
+.tabIndicator {
+  display: none;
+}
+
+.menuGridContainer {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 8px;
+  min-height: 400px;
+  position: relative;
+}
+
+.menuGrid {
+  padding: 0;
+  transition: opacity 0.3s ease;
+  width: 100%;
+  max-width: 1400px;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+}
+
+.menuItem {
+  display: flex;
+  justify-content: center;
+  transition: transform 0.3s ease-out;
+  will-change: transform, opacity;
+  padding: 8px;
+  width: 100%;
+
+  &:hover {
+    transform: translateY(-5px);
+  }
+}
+
+.loaderContainer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.skeletonCard {
+  width: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 100%;
+  min-height: 380px;
+}
+
+.noResults {
+  text-align: center;
+  padding: 64px 16px;
+  color: #666;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin: 0 auto;
+  max-width: 600px;
+  width: calc(100% - 32px);
+}
+
+.errorContainer {
+  text-align: center;
+  padding: 80px 16px;
+  width: 100%;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+// Extra small devices (portrait phones)
+@media (max-width: 575.98px) {
+  .homepageContainer {
+    padding-top: 16px;
+    padding-bottom: 32px;
+  }
+
+  .headerSection {
+    margin-bottom: 20px;
+  }
+
+  .mainTitle {
+    font-size: 1.8rem !important;
+
+    &::after {
+      width: 40px;
+    }
+  }
+
+  .subtitle {
+    font-size: 0.9rem !important;
+  }
+
+  .filterSection {
+    margin-bottom: 16px;
+  }
+
+  .searchField {
+    margin-bottom: 16px !important;
+  }
+
+  .categoryTabs {
+    border-radius: 20px;
+  }
+
+  .categoryTab {
+    min-width: 80px;
+    font-size: 0.8rem !important;
+  }
+
+  .menuItem {
+    padding: 8px !important;
+    width: 100%;
+  }
+}
+
+// Small devices (landscape phones)
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .mainTitle {
+    font-size: 2rem !important;
+  }
+
+  .menuItem {
+    padding: 8px !important;
+    width: 100%;
+  }
+
+  .menuGrid {
+    max-width: 540px;
+  }
+}
+
+// Medium devices (tablets)
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .homepageContainer {
+    padding-top: 24px;
+  }
+
+  .menuItem {
+    padding: 10px !important;
+    width: 50%;
+  }
+
+  .menuGrid {
+    max-width: 720px;
+  }
+}
+
+// Large devices (desktops)
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .headerSection {
+    margin-bottom: 48px;
+  }
+
+  .menuItem {
+    width: 33.333%;
+  }
+
+  .menuGrid {
+    max-width: 960px;
+  }
+}
+
+// Extra large devices
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .homepageContainer {
+    padding-top: 48px;
+    padding-bottom: 80px;
+  }
+
+  .mainTitle {
+    font-size: 2.8rem !important;
+  }
+
+  .headerSection {
+    margin-bottom: 56px;
+  }
+
+  .menuItem {
+    width: 25%;
+  }
+
+  .menuGrid {
+    max-width: 1140px;
+  }
+}
+
+// XXL screens
+@media (min-width: 1400px) {
+  .homepageContainer {
+    padding-top: 56px;
+    padding-bottom: 96px;
+  }
+
+  .headerSection {
+    margin-bottom: 64px;
+  }
+
+  .menuItem {
+    width: 20%;
+  }
+
+  .menuGrid {
+    max-width: 1320px;
+  }
+}
