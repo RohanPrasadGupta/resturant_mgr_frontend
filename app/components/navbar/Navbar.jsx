@@ -20,6 +20,11 @@ import {
   MenuItem,
   Tooltip,
   CircularProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
@@ -37,9 +42,16 @@ import {
   updateTableNumberRedux,
 } from "../../redux/storeSlice/loginUserSlice";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import SignIn from "../signIn/SignIn";
+import Modal from "@mui/material/Modal";
+import toast from "react-hot-toast";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [signInClicked, setSignInClicked] = useState(false);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [localStorageData, setLocalStorageData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
@@ -47,14 +59,12 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
 
-  const userType =
-    userData.tableNumber ||
-    (typeof window !== "undefined" &&
-      localStorage.getItem("mgrUserData") &&
-      JSON.parse(localStorage.getItem("mgrUserData")));
-
   const isCustomer =
-    userType.username === "customer" || userData.username === "customer";
+    localStorageData?.username === "customer" ||
+    userData?.username === "customer";
+
+  const isStaff =
+    localStorageData?.username === "staff" || userData?.username === "staff";
 
   const isActive = (path) => pathname === path;
 
@@ -86,6 +96,18 @@ const Navbar = () => {
     }
   }, [searchParams]);
 
+  // Move localStorage access to useEffect
+  useEffect(() => {
+    // Get data from localStorage after component mounts (client-side only)
+    const storedData =
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
+        : null;
+
+    setLocalStorageData(storedData);
+    setIsLoading(false);
+  }, []);
+
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
   };
@@ -101,9 +123,32 @@ const Navbar = () => {
     );
   };
 
+  const handleClose = () => {
+    setSignInClicked(false);
+  };
+
+  const handleLogoutClick = () => {
+    setLogoutDialogOpen(true);
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutDialogOpen(false);
+  };
+
+  const handleConfirmLogout = () => {
+    localStorage.removeItem("mgrUserData");
+    dispatch(logoutUserRedux());
+    setLogoutDialogOpen(false);
+    toast.success("Successfully logged out");
+  };
+
   const navItems = [
     { name: "Home", path: "/pages/home", icon: <HomeIcon /> },
-    { name: "Orders", path: "/pages/order", icon: <ShoppingBagIcon /> },
+    {
+      name: "Orders",
+      path: isStaff ? "/pages/allOrder" : "/pages/order",
+      icon: <ShoppingBagIcon />,
+    },
   ];
 
   const drawer = (
@@ -215,59 +260,60 @@ const Navbar = () => {
                   <Typography variant="body2">
                     Table:{" "}
                     {userData.tableNumber === ""
-                      ? userType.tableNumber
+                      ? localStorageData.tableNumber
                       : userData.tableNumber}
                   </Typography>
                 </Box>
               ) : (
-                // For staff/admin, show the full dropdown
-                <FormControl
-                  variant="outlined"
-                  size="small"
-                  className={styles.tableSelectContainer}
-                  error={isError}
-                >
-                  <InputLabel
-                    id="table-select-label"
-                    className={styles.tableSelectLabel}
-                  >
-                    Table
-                  </InputLabel>
-                  <Select
-                    labelId="table-select-label"
-                    value={userData.tableNumber}
-                    onChange={handleTableChange}
-                    label="Table"
-                    className={styles.tableSelect}
-                    startAdornment={
-                      <TableRestaurantIcon className={styles.tableIcon} />
-                    }
-                    disabled={isPending}
-                  >
-                    <MenuItem value="">
-                      <em>Select Table</em>
-                    </MenuItem>
-                    {tables &&
-                      tables.map((table) => (
-                        <MenuItem
-                          key={table._id}
-                          value={table._id}
-                          disabled={table.status !== "available"}
-                        >
-                          {table.number}{" "}
-                          {table.status !== "available" && `(${table.status})`}
+                <>
+                  {isStaff && (
+                    <FormControl
+                      variant="outlined"
+                      size="small"
+                      className={styles.tableSelectContainer}
+                      error={isError}
+                    >
+                      <InputLabel
+                        id="table-select-label"
+                        className={styles.tableSelectLabel}
+                      >
+                        Table
+                      </InputLabel>
+                      <Select
+                        labelId="table-select-label"
+                        value={userData.tableNumber}
+                        onChange={handleTableChange}
+                        label="Table"
+                        className={styles.tableSelect}
+                        startAdornment={
+                          <TableRestaurantIcon className={styles.tableIcon} />
+                        }
+                        disabled={isPending}
+                      >
+                        <MenuItem value="">
+                          <em>Select Table</em>
                         </MenuItem>
-                      ))}
-                  </Select>
-                </FormControl>
+                        {tables &&
+                          tables.map((table) => (
+                            <MenuItem key={table._id} value={table.number}>
+                              {table.number}{" "}
+                              {table.status !== "available" &&
+                                `(${table.status})`}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                </>
               )}
 
-              {isPending && (
-                <CircularProgress
-                  size={20}
-                  className={styles.tableSelectLoader}
-                />
-              )}
+              {isPending ||
+                (isLoading && (
+                  <CircularProgress
+                    size={20}
+                    className={styles.tableSelectLoader}
+                  />
+                ))}
             </Box>
           )}
 
@@ -311,23 +357,66 @@ const Navbar = () => {
                   <AccountCircleIcon />
                 </Box>
               ) : (
-                <Link href="/signin" className={styles.navLink}>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    className={`${styles.signInButton} ${
-                      isActive("/signin") ? styles.activeSignInButton : ""
-                    }`}
-                    startIcon={<PersonIcon />}
-                  >
-                    Sign In
-                  </Button>
-                </Link>
+                <>
+                  {isStaff ? (
+                    <Box
+                      sx={{
+                        display: "flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                      onClick={handleLogoutClick}
+                    >
+                      <AccountCircleIcon />
+                    </Box>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      className={`${styles.signInButton} ${
+                        isActive("/signin") ? styles.activeSignInButton : ""
+                      }`}
+                      startIcon={<PersonIcon />}
+                      onClick={() => setSignInClicked(true)}
+                    >
+                      Sign In
+                    </Button>
+                  )}
+                </>
               )}
             </Box>
           )}
         </Box>
       </Toolbar>
+
+      <Dialog
+        open={logoutDialogOpen}
+        onClose={handleCancelLogout}
+        aria-labelledby="logout-dialog-title"
+        aria-describedby="logout-dialog-description"
+      >
+        <DialogContent>
+          <DialogContentText id="logout-dialog-description">
+            Are you sure you want to log out?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCancelLogout} color="primary">
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConfirmLogout}
+            color="primary"
+            variant="contained"
+            autoFocus
+            sx={{
+              backgroundColor: "#ff9800",
+            }}
+          >
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Drawer
         variant="temporary"
@@ -341,6 +430,18 @@ const Navbar = () => {
       >
         {drawer}
       </Drawer>
+
+      {signInClicked && (
+        <Modal
+          open={signInClicked}
+          aria-labelledby="modal-modal-title"
+          aria-describedby="modal-modal-description"
+        >
+          <Box>
+            <SignIn handleClose={handleClose} />
+          </Box>
+        </Modal>
+      )}
     </AppBar>
   );
 };
