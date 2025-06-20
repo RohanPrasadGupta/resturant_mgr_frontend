@@ -5,8 +5,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box, Button, Typography } from "@mui/material";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import styles from "./orderStyle.module.scss";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
-import OrderCard from "@/app/components/ordersCards/OrderCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import OrderCard from "../../components/ordersCards/OrderCard";
 
 const OrderPage = () => {
   const userData = useSelector((state) => state.selectedUser.value);
