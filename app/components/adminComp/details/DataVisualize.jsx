@@ -243,7 +243,7 @@ const DataVisualize = () => {
               variant="h5"
               sx={{
                 fontWeight: 700,
-                background: "linear-gradient(45deg, #3085C3, #65B741)",
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 mb: { xs: 1, sm: 0 },
@@ -260,7 +260,6 @@ const DataVisualize = () => {
                       timeRangeOptions.find((opt) => opt.value === timeRange)
                         ?.label || "Filter"
                     }
-                    color="primary"
                     size="small"
                     icon={
                       timeRangeOptions.find((opt) => opt.value === timeRange)
@@ -272,6 +271,12 @@ const DataVisualize = () => {
                     sx={{
                       "& .MuiChip-label": { fontWeight: 500 },
                       boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
+                      bgcolor: "rgba(255, 87, 34, 0.1)",
+                      color: "#ff5722",
+                      border: "1px solid rgba(255, 87, 34, 0.2)",
+                      "& .MuiChip-icon, & .MuiChip-deleteIcon": {
+                        color: "#ff5722",
+                      },
                     }}
                   />
                 </Box>
@@ -299,12 +304,22 @@ const DataVisualize = () => {
                           py: 1.5,
                           borderLeft:
                             timeRange === option.value
-                              ? `3px solid ${theme.palette.primary.main}`
+                              ? `3px solid #ff5722`
                               : "none",
                           bgcolor:
                             timeRange === option.value
-                              ? alpha(theme.palette.primary.main, 0.1)
+                              ? alpha("#ff5722", 0.1)
                               : "transparent",
+                          "& .MuiSvgIcon-root": {
+                            color:
+                              timeRange === option.value
+                                ? "#ff5722"
+                                : "inherit",
+                          },
+                          "&.Mui-selected": {
+                            color: "#ff5722",
+                            fontWeight: 500,
+                          },
                         }}
                       >
                         <Box
@@ -328,7 +343,6 @@ const DataVisualize = () => {
                 onChange={handleTimeRangeChange}
                 aria-label="time range"
                 size="small"
-                color="primary"
                 sx={{
                   backgroundColor: theme.palette.background.paper,
                   boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
@@ -338,10 +352,18 @@ const DataVisualize = () => {
                     padding: isTablet ? "8px 12px" : "8px 16px",
                     border: "none",
                     borderRadius: 0,
+                    color: alpha("#ff5722", 0.7),
                     "&.Mui-selected": {
-                      backgroundColor: alpha(theme.palette.primary.main, 0.15),
-                      color: theme.palette.primary.main,
+                      background:
+                        "linear-gradient(90deg, rgba(255, 87, 34, 0.15), rgba(255, 152, 0, 0.15))",
+                      color: "#ff5722",
                       fontWeight: 600,
+                    },
+                    "&:hover": {
+                      backgroundColor: alpha("#ff5722", 0.05),
+                    },
+                    "& .MuiSvgIcon-root": {
+                      color: "#ff5722",
                     },
                   },
                 }}

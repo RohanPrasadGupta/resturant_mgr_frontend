@@ -4,6 +4,7 @@ import { useSelector } from "react-redux";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box, Button, Typography } from "@mui/material";
 import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
+import HomeIcon from "@mui/icons-material/Home";
 import styles from "./orderStyle.module.scss";
 import LoaderComp from "../../components/LoaderComp/LoadingComp";
 import OrderCard from "../../components/ordersCards/OrderCard";
@@ -15,6 +16,12 @@ const OrderPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tableNumber, setTableNumber] = useState("");
 
+  const themeColors = {
+    primary: "#ff5722",
+    secondary: "#ff9800",
+    gradient: "linear-gradient(135deg, #ff5722, #ff9800)",
+  };
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedData = JSON.parse(
@@ -22,7 +29,6 @@ const OrderPage = () => {
       );
       setLocalStorageData(storedData);
 
-      // Set table number from Redux or localStorage
       const tableFromRedux = userData?.tableNumber;
       const tableFromStorage = storedData?.tableNumber;
 
@@ -40,7 +46,11 @@ const OrderPage = () => {
     userData?.username === "customer" ||
     localStorageData?.username === "customer";
 
-  const { isPending, isError, data, error } = useQuery({
+  const {
+    isLoading: dataLoading,
+    data,
+    error,
+  } = useQuery({
     queryKey: ["getCustomerOrder", tableNumber],
     queryFn: () => {
       if (!tableNumber) {
@@ -48,63 +58,142 @@ const OrderPage = () => {
       }
       return fetch(
         `https://resturant-mgr-backend.onrender.com/api/order/table-number/${tableNumber}`
-      ).then((res) => res.json());
+      ).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch order data");
+        }
+        return res.json();
+      });
     },
-    enabled: !!tableNumber && !isLoading,
+    enabled: !!tableNumber && !isLoading && isCustomer,
     retry: 1,
     staleTime: 30000,
   });
 
   useEffect(() => {
-    console.log("Current table number:", tableNumber);
-    console.log("Order data:", data);
-  }, [tableNumber, data]);
+    if (process.env.NODE_ENV !== "production") {
+      console.log("Current table number:", tableNumber);
+      console.log("Order data:", data);
+      console.log("Order error:", error);
+    }
+  }, [tableNumber, data, error]);
 
-  if (isLoading || isPending) return <LoaderComp />;
+  if (isLoading || dataLoading) return <LoaderComp />;
 
-  if (isError) {
+  if (!tableNumber || error || !isCustomer) {
     return (
-      <Container className={styles.errorContainer}>
-        <Alert severity="error" className={styles.errorAlert}>
-          {error.message === "No table number available"
-            ? "Please select a table to view orders"
-            : `Error loading order: ${error.message}`}
-        </Alert>
-      </Container>
-    );
-  }
-
-  if (!tableNumber) {
-    return (
-      <Container className={styles.emptyStateContainer}>
-        <Box className={styles.emptyStateBox}>
-          <Typography variant="h5" gutterBottom>
-            No Table Selected
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          width: "100%",
+          padding: { xs: "0 16px", sm: "0 24px" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Box className={styles.emptyStateBox} sx={{ textAlign: "center" }}>
+          <Typography
+            variant="h5"
+            gutterBottom
+            color={!isCustomer ? themeColors.primary : "textSecondary"}
+            sx={{ fontWeight: 600 }}
+          >
+            {!isCustomer ? "Access Denied" : "No Table Selected"}
           </Typography>
-          <Typography variant="body1" color="textSecondary" paragraph>
-            Please select a table to view orders.
+          <Typography variant="body1" color="textSecondary">
+            {!isCustomer
+              ? "Only customers can view orders."
+              : "Please select a table to view orders."}
           </Typography>
+          {!isCustomer && (
+            <Button
+              variant="contained"
+              href="/pages/home"
+              startIcon={<HomeIcon />}
+              sx={{
+                mt: 3,
+                px: 3,
+                py: 1,
+                background: themeColors.gradient,
+                borderRadius: "8px",
+                boxShadow: "0 4px 10px rgba(255, 87, 34, 0.3)",
+                textTransform: "none",
+                fontWeight: 600,
+                "&:hover": {
+                  boxShadow: "0 6px 15px rgba(255, 87, 34, 0.4)",
+                  transform: "translateY(-2px)",
+                },
+                transition: "all 0.3s ease",
+              }}
+            >
+              Go to Home
+            </Button>
+          )}
         </Box>
       </Container>
     );
   }
 
-  if (data?.message === "No active order found for this table number") {
+  if (
+    !data?.order ||
+    data?.message === "No active order found for this table number"
+  ) {
     return (
-      <Container className={styles.noOrderContainer}>
-        <Box className={styles.noOrderContent}>
-          <RestaurantMenuIcon className={styles.noOrderIcon} />
-          <Typography variant="h5" className={styles.noOrderTitle}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          width: "100%",
+          padding: { xs: "0 16px", sm: "0 24px" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Box className={styles.noOrderContent} sx={{ textAlign: "center" }}>
+          <RestaurantMenuIcon
+            className={styles.noOrderIcon}
+            sx={{
+              fontSize: 60,
+              color: themeColors.primary,
+              mb: 2,
+            }}
+          />
+          <Typography
+            variant="h5"
+            className={styles.noOrderTitle}
+            gutterBottom
+            sx={{ color: themeColors.primary, fontWeight: 600 }}
+          >
             No Active Orders
           </Typography>
-          <Typography variant="body1" className={styles.noOrderText}>
+          <Typography variant="body1" className={styles.noOrderText} paragraph>
             There are no active orders for table {tableNumber}.
           </Typography>
           <Button
             variant="contained"
-            color="primary"
             href="/pages/menu"
             className={styles.browseMenuButton}
+            sx={{
+              background: themeColors.gradient,
+              borderRadius: "8px",
+              boxShadow: "0 4px 10px rgba(255, 87, 34, 0.3)",
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              py: 1,
+              "&:hover": {
+                boxShadow: "0 6px 15px rgba(255, 87, 34, 0.4)",
+                transform: "translateY(-2px)",
+              },
+              transition: "all 0.3s ease",
+            }}
           >
             Browse Menu
           </Button>
@@ -114,7 +203,16 @@ const OrderPage = () => {
   }
 
   return (
-    <Container className={styles.pageContainer}>
+    <Container
+      maxWidth={false}
+      disableGutters
+      sx={{
+        width: "100%",
+        padding: { xs: "0 16px", sm: "0 24px" },
+        height: "100vh",
+        backgroundColor: "#f5f5f5",
+      }}
+    >
       <OrderCard orderData={data?.order} />
     </Container>
   );

@@ -26,10 +26,18 @@ const page = () => {
     userData?.username === "customer" ||
     localStorageData?.username === "customer";
 
-  const isStaff =
-    userData?.username === "staff" || localStorageData?.username === "staff";
+  const isStaffOrAdmin =
+    userData?.username === "staff" ||
+    localStorageData?.username === "staff" ||
+    userData?.username === "admin" ||
+    localStorageData?.username === "admin";
 
-  const { isPending, isError, data, error } = useQuery({
+  const {
+    isLoading: dataLoading,
+    isError,
+    data,
+    error,
+  } = useQuery({
     queryKey: ["getOrder"],
     queryFn: () =>
       fetch(`https://resturant-mgr-backend.onrender.com/api/orders`).then(
@@ -41,11 +49,44 @@ const page = () => {
     console.log("data", data);
   }, [data]);
 
-  if (isPending || isLoading) return <LoaderComp />;
+  if (dataLoading || isLoading) return <LoaderComp />;
+
+  if (!isStaffOrAdmin)
+    return (
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          width: "100%",
+          padding: { xs: "0 16px", sm: "0 24px" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Alert severity="error">
+          You are not authorized to view this page.
+        </Alert>
+      </Container>
+    );
 
   if (isError) {
     return (
-      <Container className={styles.errorContainer}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          width: "100%",
+          padding: { xs: "0 16px", sm: "0 24px" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
         <Alert severity="error">Error loading order: {error.message}</Alert>
       </Container>
     );

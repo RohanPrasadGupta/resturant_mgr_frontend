@@ -15,8 +15,6 @@ import React, { useState } from "react";
 import { PieChart } from "@mui/x-charts/PieChart";
 import PaymentsIcon from "@mui/icons-material/Payments";
 import BookOnlineIcon from "@mui/icons-material/BookOnline";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import DonutLargeIcon from "@mui/icons-material/DonutLarge";
 
 const PieChartComp = ({
@@ -30,6 +28,13 @@ const PieChartComp = ({
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [activeIndex, setActiveIndex] = useState(null);
+
+  const themeColors = {
+    primary: "#ff5722",
+    secondary: "#ff9800",
+    gradient: "linear-gradient(135deg, #ff5722, #ff9800)",
+    darkGradient: "linear-gradient(135deg, #bf360c, #e65100)",
+  };
 
   const cashValue =
     typeof cash === "string" ? parseFloat(cash) || 0 : cash || 0;
@@ -71,8 +76,8 @@ const PieChartComp = ({
           height: { xs: "300px", sm: "400px" },
           background:
             theme.palette.mode === "dark"
-              ? "linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)"
-              : "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+              ? "linear-gradient(135deg, #bf360c 0%, #e65100 100%)"
+              : "linear-gradient(135deg, #ffccbc 0%, #ffe0b2 100%)",
           borderRadius: "16px",
           boxShadow: "0 8px 32px rgba(0,0,0,0.1)",
         }}
@@ -80,7 +85,8 @@ const PieChartComp = ({
         <DonutLargeIcon
           sx={{
             fontSize: { xs: 56, sm: 72 },
-            color: theme.palette.mode === "dark" ? "#444" : "#ccc",
+            color:
+              theme.palette.mode === "dark" ? "#ffccbc" : themeColors.primary,
             mb: 2,
             animation: "pulse 2s infinite ease-in-out",
             "@keyframes pulse": {
@@ -92,13 +98,21 @@ const PieChartComp = ({
         />
         <Typography
           variant="h6"
-          color="text.secondary"
+          color={theme.palette.mode === "dark" ? "white" : themeColors.primary}
           align="center"
-          sx={{ mb: 1 }}
+          sx={{ mb: 1, fontWeight: 600 }}
         >
           No payment data available
         </Typography>
-        <Typography variant="body2" color="text.secondary" align="center">
+        <Typography
+          variant="body2"
+          color={
+            theme.palette.mode === "dark"
+              ? "rgba(255,255,255,0.7)"
+              : "text.secondary"
+          }
+          align="center"
+        >
           {getTimeRangeLabel()} period has no transactions
         </Typography>
       </Box>
@@ -127,8 +141,8 @@ const PieChartComp = ({
         padding: { xs: "16px", sm: "20px", md: "24px" },
         background:
           theme.palette.mode === "dark"
-            ? "linear-gradient(135deg, #1a237e 0%, #311b92 100%)"
-            : "linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%)",
+            ? themeColors.darkGradient
+            : themeColors.gradient,
         borderRadius: "20px",
         color: "white",
         height: "100%",
@@ -173,7 +187,6 @@ const PieChartComp = ({
         </Typography>
       </Box>
 
-      {/* Chart Container */}
       <Paper
         elevation={0}
         sx={{
@@ -250,7 +263,9 @@ const PieChartComp = ({
             transition: "all 0.3s ease",
             transform: activeIndex === 0 ? "scale(1.03)" : "scale(1)",
             boxShadow:
-              activeIndex === 0 ? `0 10px 30px rgba(76, 175, 80, 0.3)` : "none",
+              activeIndex === 0
+                ? `0 10px 30px ${alpha(themeColors.secondary, 0.4)}`
+                : "none",
             position: "relative",
             overflow: "hidden",
             "&:hover": {
@@ -267,7 +282,7 @@ const PieChartComp = ({
                 width: "200%",
                 height: "200%",
                 background: `radial-gradient(circle, ${alpha(
-                  "#4caf50",
+                  themeColors.secondary,
                   0.2
                 )} 0%, transparent 70%)`,
                 opacity: 0.7,
@@ -405,7 +420,7 @@ const PieChartComp = ({
             transform: activeIndex === 1 ? "scale(1.03)" : "scale(1)",
             boxShadow:
               activeIndex === 1
-                ? `0 10px 30px rgba(33, 150, 243, 0.3)`
+                ? `0 10px 30px ${alpha(themeColors.secondary, 0.4)}`
                 : "none",
             position: "relative",
             overflow: "hidden",
@@ -423,7 +438,7 @@ const PieChartComp = ({
                 width: "200%",
                 height: "200%",
                 background: `radial-gradient(circle, ${alpha(
-                  "#2196f3",
+                  themeColors.secondary,
                   0.2
                 )} 0%, transparent 70%)`,
                 opacity: 0.7,

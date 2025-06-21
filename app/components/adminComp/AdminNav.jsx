@@ -90,6 +90,10 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
           justifyContent: "space-between",
           padding: "16px 20px",
           borderBottom: `1px solid ${theme.palette.divider}`,
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(135deg, rgba(66, 66, 66, 0.8), rgba(33, 33, 33, 0.8))"
+              : "linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(245, 245, 245, 0.8))",
         }}
       >
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
@@ -97,13 +101,20 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
             sx={{
               width: 40,
               height: 40,
-              bgcolor: theme.palette.primary.main,
+              background: "linear-gradient(90deg, #ff5722, #ff9800)",
+              boxShadow: "0 3px 6px rgba(255, 87, 34, 0.2)",
             }}
           >
             R
           </Avatar>
           <Box>
-            <Typography variant="subtitle1" fontWeight={600}>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                fontWeight: "bold",
+                color: "text.primary",
+              }}
+            >
               Restaurant Manager
             </Typography>
             <Typography variant="caption" color="text.secondary">
@@ -112,7 +123,16 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
           </Box>
         </Box>
         {isMobile && (
-          <IconButton onClick={toggleDrawer(false)} edge="end">
+          <IconButton
+            onClick={toggleDrawer(false)}
+            edge="end"
+            sx={{
+              color: "#ff5722",
+              "&:hover": {
+                backgroundColor: "rgba(255, 87, 34, 0.08)",
+              },
+            }}
+          >
             {theme.direction === "rtl" ? <ExpandMore /> : <ExpandLess />}
           </IconButton>
         )}
@@ -129,14 +149,21 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                 mb: 1,
                 borderRadius: "10px",
                 overflow: "hidden",
-                backgroundColor: isSelected
-                  ? theme.palette.primary.main
+                background: isSelected
+                  ? "linear-gradient(90deg, #ff5722, #ff9800)"
                   : "transparent",
+                transition: "all 0.3s ease",
                 "&:hover": {
                   backgroundColor: isSelected
-                    ? theme.palette.primary.dark
+                    ? undefined // Keep gradient when selected
                     : theme.palette.action.hover,
+                  boxShadow: isSelected
+                    ? "0 4px 10px rgba(255, 87, 34, 0.3)"
+                    : "none",
                 },
+                boxShadow: isSelected
+                  ? "0 4px 8px rgba(255, 87, 34, 0.2)"
+                  : "none",
               }}
             >
               <Tooltip
@@ -161,7 +188,11 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                   <ListItemIcon
                     sx={{
                       minWidth: 40,
-                      color: isSelected ? "#fff" : theme.palette.text.primary,
+                      color: isSelected
+                        ? "#fff"
+                        : item.disabled
+                        ? theme.palette.text.disabled
+                        : "#ff5722", // Theme color for non-selected icons
                     }}
                   >
                     {item.icon}
@@ -171,7 +202,7 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                     sx={{
                       color: isSelected ? "#fff" : theme.palette.text.primary,
                       "& .MuiTypography-root": {
-                        fontWeight: isSelected ? 600 : 400,
+                        fontWeight: isSelected ? 600 : 500,
                       },
                     }}
                   />
@@ -203,8 +234,19 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Brightness4 fontSize="small" color="action" />
-            <Typography variant="body2" color="text.secondary">
+            <Brightness4
+              fontSize="small"
+              sx={{ color: "#ff9800" }} // Theme color for footer icon
+            />
+            <Typography
+              variant="body2"
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: 500,
+              }}
+            >
               v1.0.0
             </Typography>
           </Box>
@@ -224,17 +266,33 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
               alignItems: "center",
               padding: "16px",
               borderBottom: `1px solid ${theme.palette.divider}`,
+              background:
+                theme.palette.mode === "dark"
+                  ? "linear-gradient(to right, rgba(33, 33, 33, 0.95), rgba(66, 66, 66, 0.95))"
+                  : "linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.95))",
             }}
           >
-            <Typography variant="h6" fontWeight={600}>
+            <Typography
+              variant="h6"
+              fontWeight={600}
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
               Admin Panel
             </Typography>
             <IconButton
-              color="inherit"
               aria-label="open drawer"
               edge="start"
               onClick={toggleDrawer(true)}
-              sx={{ mr: 2 }}
+              sx={{
+                color: "#ff5722",
+                "&:hover": {
+                  backgroundColor: "rgba(255, 87, 34, 0.08)",
+                },
+              }}
             >
               <MenuIcon />
             </IconButton>
@@ -248,6 +306,7 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                 width: 280,
                 boxSizing: "border-box",
                 borderRadius: { xs: "0 16px 16px 0", md: 0 },
+                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
               },
             }}
           >
@@ -264,6 +323,11 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
             height: "100%",
             display: "flex",
             flexDirection: "column",
+            boxShadow: "0 0 20px rgba(0, 0, 0, 0.05)",
+            background:
+              theme.palette.mode === "dark"
+                ? "linear-gradient(180deg, rgba(33, 33, 33, 0.98), rgba(28, 28, 28, 0.95))"
+                : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 250, 0.95))",
           }}
         >
           {renderNavItems()}

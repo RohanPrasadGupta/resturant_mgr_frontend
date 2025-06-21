@@ -20,6 +20,12 @@ const SumChartDetails = ({ data, timeRange }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isSmall = useMediaQuery(theme.breakpoints.down("md"));
 
+  const themeColors = {
+    primary: "#ff5722",
+    secondary: "#ff9800",
+    gradient: "linear-gradient(90deg, #ff5722, #ff9800)",
+  };
+
   const getTimeRangeLabel = () => {
     const labels = {
       today: "Today's",
@@ -40,8 +46,8 @@ const SumChartDetails = ({ data, timeRange }) => {
         position: "relative",
         background:
           theme.palette.mode === "dark"
-            ? "linear-gradient(135deg, #1a237e 0%, #311b92 100%)"
-            : "linear-gradient(135deg, #4a148c 0%, #7b1fa2 100%)",
+            ? "linear-gradient(135deg, #bf360c, #e65100)"
+            : "linear-gradient(135deg, #ff5722, #ff9800)",
         color: "white",
         boxShadow: "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.22)",
         transition: "transform 0.3s ease, box-shadow 0.3s ease",
@@ -142,7 +148,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                   left: 0,
                   width: "100%",
                   height: "4px",
-                  background: "linear-gradient(90deg, #ffeb3b, #ff9800)",
+                  background: "linear-gradient(90deg, #fff, #ffe0b2)",
                 },
               }}
             >
@@ -150,7 +156,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                 <AccountBalanceWalletOutlinedIcon
                   sx={{
                     fontSize: { xs: 20, sm: 24 },
-                    color: "#ffeb3b",
+                    color: "#ffffff",
                     filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
                   }}
                 />
@@ -218,7 +224,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                   left: 0,
                   width: "100%",
                   height: "4px",
-                  background: "linear-gradient(90deg, #03a9f4, #00bcd4)",
+                  background: "linear-gradient(90deg, #fff, #ffe0b2)",
                 },
               }}
             >
@@ -226,7 +232,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                 <ShoppingCartOutlinedIcon
                   sx={{
                     fontSize: { xs: 20, sm: 24 },
-                    color: "#03a9f4",
+                    color: "#ffffff",
                     filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
                   }}
                 />
@@ -285,7 +291,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                   left: 0,
                   width: "100%",
                   height: "4px",
-                  background: "linear-gradient(90deg, #8bc34a, #4caf50)",
+                  background: "linear-gradient(90deg, #fff, #ffe0b2)",
                 },
               }}
             >
@@ -293,7 +299,7 @@ const SumChartDetails = ({ data, timeRange }) => {
                 <EqualizerOutlinedIcon
                   sx={{
                     fontSize: { xs: 20, sm: 24 },
-                    color: "#8bc34a",
+                    color: "#ffffff",
                     filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.3))",
                   }}
                 />

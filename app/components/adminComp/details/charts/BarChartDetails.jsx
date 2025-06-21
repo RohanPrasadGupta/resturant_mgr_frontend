@@ -29,7 +29,12 @@ const BarChartDetails = ({ data }) => {
   const [timeRange, setTimeRange] = React.useState("monthly");
   const [chartType, setChartType] = React.useState("grouped");
 
-  // Get date range configuration based on selected time period
+  const themeColors = {
+    primary: "#ff5722",
+    secondary: "#ff9800",
+    gradient: "linear-gradient(90deg, #ff5722, #ff9800)",
+  };
+
   const getDateRange = (range) => {
     const now = new Date();
     const ranges = {
@@ -61,28 +66,21 @@ const BarChartDetails = ({ data }) => {
     return ranges[range];
   };
 
-  // Process data by time range
   const processDataByTimeRange = (data, range) => {
     const rangeConfig = getDateRange(range);
     const groupedData = {};
 
-    // Access orders data appropriately based on the actual API response structure
     let orders = [];
-
-    // Handle different possible data structures
+    
     if (Array.isArray(data)) {
-      // Direct array of orders
       orders = data;
     } else if (data?.finalOrders && Array.isArray(data.finalOrders)) {
-      // Orders inside finalOrders property
       orders = data.finalOrders;
     } else {
-      // If data structure is unexpected, log error and return empty array
       console.error("Unexpected data structure:", data);
       return [];
     }
 
-    // Filter orders within date range
     const filteredOrders = orders.filter((order) => {
       const orderDate = new Date(order.createdAt);
       return orderDate >= rangeConfig.start && orderDate <= rangeConfig.end;
@@ -140,7 +138,6 @@ const BarChartDetails = ({ data }) => {
       }
     });
 
-    // Convert to array and sort
     return Object.values(groupedData).sort((a, b) => {
       if (rangeConfig.groupBy === "hour") {
         return a.period.localeCompare(b.period);
@@ -149,15 +146,12 @@ const BarChartDetails = ({ data }) => {
     });
   };
 
-  // Process the data based on selected time range
   const chartData = React.useMemo(() => {
     return processDataByTimeRange(data, timeRange);
   }, [data, timeRange]);
 
-  // Currency formatter for Nepali Rupees
   const currencyFormatter = (value) => `Rs. ${value.toLocaleString()}`;
 
-  // Calculate totals for summary
   const totalCashRevenue = chartData.reduce(
     (sum, item) => sum + item.cashRevenue,
     0
@@ -172,7 +166,6 @@ const BarChartDetails = ({ data }) => {
   );
   const totalRevenue = totalCashRevenue + totalOnlineRevenue;
 
-  // Find highest revenue period
   const highestRevenuePeriod =
     chartData.length > 0
       ? chartData.reduce(
@@ -185,12 +178,11 @@ const BarChartDetails = ({ data }) => {
         )
       : null;
 
-  // Dynamic chart settings based on time range
   const getChartSettings = () => {
     const baseHeight = Math.max(350, Math.min(chartData.length * 35, 500));
     const colors = {
-      cash: "#4CAF50", // Brighter green
-      online: "#2196F3", // Brighter blue
+      cash: "#4CAF50",
+      online: "#2196F3",
     };
 
     return {
@@ -311,7 +303,6 @@ const BarChartDetails = ({ data }) => {
         transition: "all 0.3s ease-in-out",
       }}
     >
-      {/* Header with Controls */}
       <Box
         sx={{
           display: "flex",
@@ -327,26 +318,23 @@ const BarChartDetails = ({ data }) => {
             display: "flex",
             alignItems: "center",
             gap: 1,
-            background:
-              theme.palette.mode === "dark"
-                ? alpha(theme.palette.primary.main, 0.1)
-                : alpha(theme.palette.primary.light, 0.1),
+            background: alpha(themeColors.primary, 0.1),
             padding: "8px 16px",
             borderRadius: "12px",
           }}
         >
           <QueryStatsIcon
-            color="primary"
             sx={{
               fontSize: { xs: 24, sm: 28 },
               filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+              color: themeColors.primary,
             }}
           />
           <Typography
             variant="h5"
             sx={{
               fontWeight: 700,
-              background: "linear-gradient(45deg, #2196F3, #4CAF50)",
+              background: themeColors.gradient,
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
               fontSize: { xs: "1.2rem", sm: "1.5rem" },
@@ -374,6 +362,12 @@ const BarChartDetails = ({ data }) => {
               boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
               borderRadius: "8px",
               overflow: "hidden",
+              "& .MuiButtonGroup-grouped": {
+                borderColor: alpha(themeColors.primary, 0.5),
+                "&:hover": {
+                  borderColor: themeColors.primary,
+                },
+              },
             }}
           >
             <Tooltip title="Grouped Chart">
@@ -384,6 +378,23 @@ const BarChartDetails = ({ data }) => {
                   borderRadius: "8px 0 0 8px",
                   transition: "all 0.2s ease",
                   minWidth: { xs: "40px", sm: "80px" },
+                  ...(chartType === "grouped"
+                    ? {
+                        background: themeColors.gradient,
+                        color: "white",
+                        "&:hover": {
+                          background: themeColors.gradient,
+                          filter: "brightness(1.1)",
+                        },
+                      }
+                    : {
+                        color: themeColors.primary,
+                        borderColor: alpha(themeColors.primary, 0.5),
+                        "&:hover": {
+                          borderColor: themeColors.primary,
+                          backgroundColor: alpha(themeColors.primary, 0.04),
+                        },
+                      }),
                 }}
               >
                 <BarChartIcon
@@ -400,6 +411,23 @@ const BarChartDetails = ({ data }) => {
                   borderRadius: "0 8px 8px 0",
                   transition: "all 0.2s ease",
                   minWidth: { xs: "40px", sm: "80px" },
+                  ...(chartType === "stacked"
+                    ? {
+                        background: themeColors.gradient,
+                        color: "white",
+                        "&:hover": {
+                          background: themeColors.gradient,
+                          filter: "brightness(1.1)",
+                        },
+                      }
+                    : {
+                        color: themeColors.primary,
+                        borderColor: alpha(themeColors.primary, 0.5),
+                        "&:hover": {
+                          borderColor: themeColors.primary,
+                          backgroundColor: alpha(themeColors.primary, 0.04),
+                        },
+                      }),
                 }}
               >
                 <StackedBarChartIcon
@@ -425,11 +453,18 @@ const BarChartDetails = ({ data }) => {
                 borderRadius: "8px",
                 boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
                 "& .MuiOutlinedInput-notchedOutline": {
-                  borderColor: alpha(theme.palette.primary.main, 0.2),
+                  borderColor: alpha(themeColors.primary, 0.3),
                   transition: "all 0.2s ease",
                 },
                 "&:hover .MuiOutlinedInput-notchedOutline": {
-                  borderColor: theme.palette.primary.main,
+                  borderColor: themeColors.primary,
+                },
+                "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                  borderColor: themeColors.primary,
+                  borderWidth: "1px",
+                },
+                "& .MuiSelect-icon": {
+                  color: alpha(themeColors.primary, 0.8),
                 },
               }}
             >
@@ -442,7 +477,6 @@ const BarChartDetails = ({ data }) => {
         </Box>
       </Box>
 
-      {/* Summary Cards */}
       {chartData.length > 0 && (
         <Box sx={{ mb: 4 }}>
           <Card
@@ -452,7 +486,7 @@ const BarChartDetails = ({ data }) => {
               borderRadius: 3,
               backgroundColor: alpha(theme.palette.background.paper, 0.8),
               backdropFilter: "blur(10px)",
-              borderColor: alpha(theme.palette.primary.main, 0.1),
+              borderColor: alpha(themeColors.primary, 0.1),
               boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
               transition: "transform 0.3s ease, box-shadow 0.3s ease",
               "&:hover": {
@@ -472,7 +506,6 @@ const BarChartDetails = ({ data }) => {
               spacing={{ xs: 3, md: 3 }}
               justifyContent="space-between"
             >
-              {/* Total Revenue */}
               <Box
                 sx={{
                   flex: 1,
@@ -502,10 +535,10 @@ const BarChartDetails = ({ data }) => {
                 <Typography
                   variant="h4"
                   fontWeight="700"
-                  color="primary"
                   sx={{
                     fontSize: { xs: "1.75rem", sm: "2rem" },
                     textShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                    color: themeColors.primary,
                   }}
                 >
                   {currencyFormatter(totalRevenue)}
@@ -584,7 +617,6 @@ const BarChartDetails = ({ data }) => {
                 </Box>
               </Box>
 
-              {/* Total Orders */}
               <Box
                 sx={{
                   flex: 1,
@@ -599,8 +631,7 @@ const BarChartDetails = ({ data }) => {
                         width: "40%",
                         height: "4px",
                         borderRadius: "2px",
-                        background:
-                          "linear-gradient(90deg, #FF9800, transparent)",
+                        background: `linear-gradient(90deg, ${themeColors.secondary}, transparent)`,
                       },
                 }}
               >
@@ -617,6 +648,7 @@ const BarChartDetails = ({ data }) => {
                   sx={{
                     fontSize: { xs: "1.75rem", sm: "2rem" },
                     textShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                    color: themeColors.secondary,
                   }}
                 >
                   {totalOrders}
@@ -628,20 +660,19 @@ const BarChartDetails = ({ data }) => {
                   )}/order`}
                   sx={{
                     mt: 1.5,
-                    backgroundColor: alpha("#FF9800", 0.15),
-                    color: "#E65100",
+                    backgroundColor: alpha(themeColors.secondary, 0.15),
+                    color: themeColors.primary,
                     fontWeight: 500,
                     py: 0.5,
                     borderRadius: "8px",
                     transition: "all 0.2s ease",
                     "&:hover": {
-                      backgroundColor: alpha("#FF9800", 0.25),
+                      backgroundColor: alpha(themeColors.secondary, 0.25),
                     },
                   }}
                 />
               </Box>
 
-              {/* Best Performing Period */}
               {highestRevenuePeriod && (
                 <Box
                   sx={{
@@ -657,8 +688,7 @@ const BarChartDetails = ({ data }) => {
                           width: "40%",
                           height: "4px",
                           borderRadius: "2px",
-                          background:
-                            "linear-gradient(90deg, #9C27B0, transparent)",
+                          background: `linear-gradient(90deg, ${themeColors.primary}, transparent)`,
                         },
                   }}
                 >
@@ -672,7 +702,7 @@ const BarChartDetails = ({ data }) => {
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                     <TrendingUpIcon
                       sx={{
-                        color: "#4CAF50",
+                        color: themeColors.primary,
                         filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.1))",
                       }}
                     />
@@ -701,13 +731,11 @@ const BarChartDetails = ({ data }) => {
                       variant="caption"
                       sx={{
                         ml: 1,
-                        backgroundColor: alpha(
-                          theme.palette.text.secondary,
-                          0.1
-                        ),
+                        backgroundColor: alpha(themeColors.primary, 0.1),
                         px: 1,
                         py: 0.3,
                         borderRadius: 1,
+                        color: themeColors.primary,
                       }}
                     >
                       {highestRevenuePeriod.totalOrders} orders
@@ -720,7 +748,6 @@ const BarChartDetails = ({ data }) => {
         </Box>
       )}
 
-      {/* Bar Chart */}
       <Card
         elevation={0}
         sx={{
@@ -728,7 +755,7 @@ const BarChartDetails = ({ data }) => {
           overflow: "hidden",
           backgroundColor: alpha(theme.palette.background.paper, 0.6),
           backdropFilter: "blur(10px)",
-          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          border: `1px solid ${alpha(themeColors.primary, 0.1)}`,
           boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
           transition: "all 0.3s ease",
           "&:hover": {
@@ -750,10 +777,10 @@ const BarChartDetails = ({ data }) => {
                 height: "8px",
               },
               "&::-webkit-scrollbar-thumb": {
-                backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                backgroundColor: alpha(themeColors.primary, 0.2),
                 borderRadius: "8px",
                 "&:hover": {
-                  backgroundColor: alpha(theme.palette.primary.main, 0.3),
+                  backgroundColor: alpha(themeColors.primary, 0.3),
                 },
               },
               "&::-webkit-scrollbar-track": {
@@ -798,7 +825,7 @@ const BarChartDetails = ({ data }) => {
               <QueryStatsIcon
                 sx={{
                   fontSize: 70,
-                  color: alpha(theme.palette.text.secondary, 0.4),
+                  color: alpha(themeColors.primary, 0.4),
                   mb: 2,
                   animation: "pulse 2s infinite ease-in-out",
                   "@keyframes pulse": {

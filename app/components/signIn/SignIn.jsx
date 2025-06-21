@@ -29,8 +29,6 @@ const SignIn = ({ handleClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
 
-  // ...existing code...
-
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
       const formData = { email, password };
