@@ -1,5 +1,5 @@
 // constant.js
-export const MOCK_BAR_CHART_DATA = [
+export const MOCK_BAR_CHART_DATA = 
   {
     message: "success",
     finalOrders: [
@@ -805,5 +805,5 @@ export const MOCK_BAR_CHART_DATA = [
         __v: 0,
       },
     ],
-  },
-];
+  }
+

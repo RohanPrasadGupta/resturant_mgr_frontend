@@ -4,17 +4,32 @@ import {
   Typography,
   Card,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
+  Button,
+  ButtonGroup,
+  Stack,
+  Divider,
+  Chip,
+  useTheme,
+  alpha,
+  Tooltip,
+  useMediaQuery,
 } from "@mui/material";
 import { BarChart } from "@mui/x-charts/BarChart";
-import { MOCK_BAR_CHART_DATA } from "./constant";
+import TrendingUpIcon from "@mui/icons-material/TrendingUp";
+import QueryStatsIcon from "@mui/icons-material/QueryStats";
+import BarChartIcon from "@mui/icons-material/BarChart";
+import StackedBarChartIcon from "@mui/icons-material/StackedBarChart";
 
-const BarChartDetails = () => {
+const BarChartDetails = ({ data }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
   const [timeRange, setTimeRange] = React.useState("monthly");
+  const [chartType, setChartType] = React.useState("grouped");
 
-  // Function to get date range based on selection
+  // Get date range configuration based on selected time period
   const getDateRange = (range) => {
     const now = new Date();
     const ranges = {
@@ -46,11 +61,26 @@ const BarChartDetails = () => {
     return ranges[range];
   };
 
-  // Function to process data based on selected time range
+  // Process data by time range
   const processDataByTimeRange = (data, range) => {
     const rangeConfig = getDateRange(range);
     const groupedData = {};
-    const orders = data[0]?.finalOrders || [];
+
+    // Access orders data appropriately based on the actual API response structure
+    let orders = [];
+
+    // Handle different possible data structures
+    if (Array.isArray(data)) {
+      // Direct array of orders
+      orders = data;
+    } else if (data?.finalOrders && Array.isArray(data.finalOrders)) {
+      // Orders inside finalOrders property
+      orders = data.finalOrders;
+    } else {
+      // If data structure is unexpected, log error and return empty array
+      console.error("Unexpected data structure:", data);
+      return [];
+    }
 
     // Filter orders within date range
     const filteredOrders = orders.filter((order) => {
@@ -95,11 +125,14 @@ const BarChartDetails = () => {
           period: key,
           cashRevenue: 0,
           onlineRevenue: 0,
+          totalRevenue: 0,
           totalOrders: 0,
         };
       }
 
       groupedData[key].totalOrders += 1;
+      groupedData[key].totalRevenue += order.total;
+
       if (order.paymentMethod === "cash") {
         groupedData[key].cashRevenue += order.total;
       } else {
@@ -117,43 +150,143 @@ const BarChartDetails = () => {
   };
 
   // Process the data based on selected time range
-  const chartData = processDataByTimeRange(MOCK_BAR_CHART_DATA, timeRange);
+  const chartData = React.useMemo(() => {
+    return processDataByTimeRange(data, timeRange);
+  }, [data, timeRange]);
 
   // Currency formatter for Nepali Rupees
   const currencyFormatter = (value) => `Rs. ${value.toLocaleString()}`;
 
+  // Calculate totals for summary
+  const totalCashRevenue = chartData.reduce(
+    (sum, item) => sum + item.cashRevenue,
+    0
+  );
+  const totalOnlineRevenue = chartData.reduce(
+    (sum, item) => sum + item.onlineRevenue,
+    0
+  );
+  const totalOrders = chartData.reduce(
+    (sum, item) => sum + item.totalOrders,
+    0
+  );
+  const totalRevenue = totalCashRevenue + totalOnlineRevenue;
+
+  // Find highest revenue period
+  const highestRevenuePeriod =
+    chartData.length > 0
+      ? chartData.reduce(
+          (max, item) =>
+            item.cashRevenue + item.onlineRevenue >
+            max.cashRevenue + max.onlineRevenue
+              ? item
+              : max,
+          chartData[0]
+        )
+      : null;
+
   // Dynamic chart settings based on time range
   const getChartSettings = () => {
-    const baseHeight = Math.max(400, chartData.length * 40);
+    const baseHeight = Math.max(350, Math.min(chartData.length * 35, 500));
+    const colors = {
+      cash: "#4CAF50", // Brighter green
+      online: "#2196F3", // Brighter blue
+    };
+
     return {
       yAxis: [
         {
           label: "Revenue (NPR)",
-          width: 80,
+          tickSize: 0,
+          gridLineDashPattern: [3, 3],
+          tickLabelStyle: {
+            fontSize: 12,
+          },
         },
       ],
-      series: [
-        {
-          dataKey: "cashRevenue",
-          label: "Cash Revenue",
-          valueFormatter: currencyFormatter,
-          color: "#4caf50",
+      series:
+        chartType === "grouped"
+          ? [
+              {
+                dataKey: "cashRevenue",
+                label: "Cash",
+                valueFormatter: currencyFormatter,
+                color: colors.cash,
+                highlightScope: {
+                  highlighted: "item",
+                  faded: "global",
+                },
+                borderRadius: 4,
+              },
+              {
+                dataKey: "onlineRevenue",
+                label: "Online",
+                valueFormatter: currencyFormatter,
+                color: colors.online,
+                highlightScope: {
+                  highlighted: "item",
+                  faded: "global",
+                },
+                borderRadius: 4,
+              },
+            ]
+          : [
+              {
+                dataKey: "cashRevenue",
+                label: "Cash",
+                valueFormatter: currencyFormatter,
+                color: colors.cash,
+                highlightScope: {
+                  highlighted: "item",
+                  faded: "global",
+                },
+                borderRadius: 4,
+                stack: "stack1",
+              },
+              {
+                dataKey: "onlineRevenue",
+                label: "Online",
+                valueFormatter: currencyFormatter,
+                color: colors.online,
+                highlightScope: {
+                  highlighted: "item",
+                  faded: "global",
+                },
+                borderRadius: 4,
+                stack: "stack1",
+              },
+            ],
+      height: baseHeight,
+      margin: {
+        top: 20,
+        bottom: isMobile ? 80 : 60,
+        left: isMobile ? 50 : 80,
+        right: 20,
+      },
+      slotProps: {
+        legend: {
+          position: {
+            vertical: "top",
+            horizontal: isMobile ? "center" : "right",
+          },
+          sx: {
+            "& .MuiChartLegend-mark": {
+              width: 10,
+              height: 10,
+              marginRight: 5,
+            },
+            "& .MuiChartLegend-item": {
+              marginRight: 15,
+            },
+          },
         },
-        {
-          dataKey: "onlineRevenue",
-          label: "Online Revenue",
-          valueFormatter: currencyFormatter,
-          color: "#ff9800",
-        },
-      ],
-      height: Math.min(baseHeight, 600),
-      margin: { top: 20, bottom: 60, left: 80, right: 20 },
+      },
     };
   };
 
   const getTitle = () => {
     const titles = {
-      daily: "Today's Hourly Revenue",
+      daily: "Today's Revenue by Hour",
       weekly: "Last 7 Days Revenue",
       monthly: "Monthly Revenue Analysis",
       yearly: "Yearly Revenue Comparison",
@@ -163,135 +296,490 @@ const BarChartDetails = () => {
 
   return (
     <Card
+      elevation={0}
       sx={{
-        borderRadius: "12px",
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-        padding: "24px",
-        background: "linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)",
+        borderRadius: "20px",
+        padding: { xs: "16px", sm: "24px" },
+        background:
+          theme.palette.mode === "dark"
+            ? "linear-gradient(135deg, #1e293b 0%, #0f172a 100%)"
+            : "linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)",
+        boxShadow:
+          theme.palette.mode === "dark"
+            ? "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23)"
+            : "0 10px 20px rgba(0,0,0,0.05), 0 6px 6px rgba(0,0,0,0.1)",
+        transition: "all 0.3s ease-in-out",
       }}
     >
-      {/* Header with Dropdown */}
+      {/* Header with Controls */}
       <Box
         sx={{
           display: "flex",
+          flexDirection: { xs: "column", sm: "row" },
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: { xs: "flex-start", sm: "center" },
+          gap: 2,
           marginBottom: "24px",
         }}
       >
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 600,
-            color: "#333",
-          }}
-        >
-          {getTitle()}
-        </Typography>
-
-        <FormControl sx={{ minWidth: 150 }}>
-          <InputLabel>Time Range</InputLabel>
-          <Select
-            value={timeRange}
-            label="Time Range"
-            onChange={(e) => setTimeRange(e.target.value)}
-            sx={{
-              backgroundColor: "rgba(255, 255, 255, 0.8)",
-              borderRadius: "8px",
-            }}
-          >
-            <MenuItem value="daily">Daily (Today)</MenuItem>
-            <MenuItem value="weekly">Weekly (7 days)</MenuItem>
-            <MenuItem value="monthly">Monthly</MenuItem>
-            <MenuItem value="yearly">Yearly</MenuItem>
-          </Select>
-        </FormControl>
-      </Box>
-
-      {/* Summary Stats */}
-      {chartData.length > 0 && (
         <Box
           sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "16px",
-            marginBottom: "24px",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            background:
+              theme.palette.mode === "dark"
+                ? alpha(theme.palette.primary.main, 0.1)
+                : alpha(theme.palette.primary.light, 0.1),
+            padding: "8px 16px",
+            borderRadius: "12px",
           }}
         >
-          {chartData.map((periodData, index) => (
-            <Card
-              key={index}
+          <QueryStatsIcon
+            color="primary"
+            sx={{
+              fontSize: { xs: 24, sm: 28 },
+              filter: "drop-shadow(0 2px 4px rgba(0,0,0,0.2))",
+            }}
+          />
+          <Typography
+            variant="h5"
+            sx={{
+              fontWeight: 700,
+              background: "linear-gradient(45deg, #2196F3, #4CAF50)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontSize: { xs: "1.2rem", sm: "1.5rem" },
+            }}
+          >
+            {getTitle()}
+          </Typography>
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            gap: 2,
+            flexWrap: "wrap",
+            width: { xs: "100%", sm: "auto" },
+            justifyContent: { xs: "space-between", sm: "flex-end" },
+          }}
+        >
+          <ButtonGroup
+            variant="outlined"
+            size="small"
+            aria-label="chart type selection"
+            sx={{
+              height: 40,
+              boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
+              borderRadius: "8px",
+              overflow: "hidden",
+            }}
+          >
+            <Tooltip title="Grouped Chart">
+              <Button
+                onClick={() => setChartType("grouped")}
+                variant={chartType === "grouped" ? "contained" : "outlined"}
+                sx={{
+                  borderRadius: "8px 0 0 8px",
+                  transition: "all 0.2s ease",
+                  minWidth: { xs: "40px", sm: "80px" },
+                }}
+              >
+                <BarChartIcon
+                  sx={{ fontSize: { xs: 16, sm: 18 }, mr: { xs: 0, sm: 0.5 } }}
+                />
+                {!isMobile && "Grouped"}
+              </Button>
+            </Tooltip>
+            <Tooltip title="Stacked Chart">
+              <Button
+                onClick={() => setChartType("stacked")}
+                variant={chartType === "stacked" ? "contained" : "outlined"}
+                sx={{
+                  borderRadius: "0 8px 8px 0",
+                  transition: "all 0.2s ease",
+                  minWidth: { xs: "40px", sm: "80px" },
+                }}
+              >
+                <StackedBarChartIcon
+                  sx={{ fontSize: { xs: 16, sm: 18 }, mr: { xs: 0, sm: 0.5 } }}
+                />
+                {!isMobile && "Stacked"}
+              </Button>
+            </Tooltip>
+          </ButtonGroup>
+
+          <FormControl
+            size="small"
+            sx={{ minWidth: { xs: "120px", sm: "150px" } }}
+          >
+            <Select
+              value={timeRange}
+              onChange={(e) => setTimeRange(e.target.value)}
+              displayEmpty
+              variant="outlined"
               sx={{
-                padding: "16px",
-                textAlign: "center",
-                backgroundColor: "rgba(255, 255, 255, 0.8)",
+                height: 40,
+                backgroundColor: alpha(theme.palette.background.paper, 0.9),
                 borderRadius: "8px",
+                boxShadow: "0 2px 5px rgba(0,0,0,0.08)",
+                "& .MuiOutlinedInput-notchedOutline": {
+                  borderColor: alpha(theme.palette.primary.main, 0.2),
+                  transition: "all 0.2s ease",
+                },
+                "&:hover .MuiOutlinedInput-notchedOutline": {
+                  borderColor: theme.palette.primary.main,
+                },
               }}
             >
-              <Typography variant="body2" color="text.secondary">
-                {periodData.period}
-              </Typography>
+              <MenuItem value="daily">Today</MenuItem>
+              <MenuItem value="weekly">Last 7 days</MenuItem>
+              <MenuItem value="monthly">Monthly</MenuItem>
+              <MenuItem value="yearly">Yearly</MenuItem>
+            </Select>
+          </FormControl>
+        </Box>
+      </Box>
+
+      {/* Summary Cards */}
+      {chartData.length > 0 && (
+        <Box sx={{ mb: 4 }}>
+          <Card
+            variant="outlined"
+            sx={{
+              p: { xs: 2, md: 3 },
+              borderRadius: 3,
+              backgroundColor: alpha(theme.palette.background.paper, 0.8),
+              backdropFilter: "blur(10px)",
+              borderColor: alpha(theme.palette.primary.main, 0.1),
+              boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
+              transition: "transform 0.3s ease, box-shadow 0.3s ease",
+              "&:hover": {
+                transform: "translateY(-3px)",
+                boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+              },
+            }}
+          >
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              divider={
+                <Divider
+                  orientation={{ xs: "horizontal", md: "vertical" }}
+                  flexItem
+                />
+              }
+              spacing={{ xs: 3, md: 3 }}
+              justifyContent="space-between"
+            >
+              {/* Total Revenue */}
               <Box
-                sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
+                sx={{
+                  flex: 1,
+                  position: "relative",
+                  "&::after": isTablet
+                    ? {}
+                    : {
+                        content: '""',
+                        position: "absolute",
+                        bottom: "-16px",
+                        left: "0",
+                        width: "40%",
+                        height: "4px",
+                        borderRadius: "2px",
+                        background:
+                          "linear-gradient(90deg, #4CAF50, transparent)",
+                      },
+                }}
               >
-                <Box>
-                  <Typography variant="caption" sx={{ color: "#4caf50" }}>
-                    Cash
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{ fontWeight: 600, color: "#4caf50" }}
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  gutterBottom
+                >
+                  Total Revenue
+                </Typography>
+                <Typography
+                  variant="h4"
+                  fontWeight="700"
+                  color="primary"
+                  sx={{
+                    fontSize: { xs: "1.75rem", sm: "2rem" },
+                    textShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {currencyFormatter(totalRevenue)}
+                </Typography>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    mt: 1.5,
+                    gap: 1.5,
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.8,
+                      backgroundColor: alpha("#4CAF50", 0.1),
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: 2,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: alpha("#4CAF50", 0.2),
+                      },
+                    }}
                   >
-                    {currencyFormatter(periodData.cashRevenue)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" sx={{ color: "#ff9800" }}>
-                    Online
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{ fontWeight: 600, color: "#ff9800" }}
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: "#4CAF50",
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      fontWeight="500"
+                      color="#4CAF50"
+                    >
+                      {currencyFormatter(totalCashRevenue)}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 0.8,
+                      backgroundColor: alpha("#2196F3", 0.1),
+                      px: 1.5,
+                      py: 0.5,
+                      borderRadius: 2,
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: alpha("#2196F3", 0.2),
+                      },
+                    }}
                   >
-                    {currencyFormatter(periodData.onlineRevenue)}
-                  </Typography>
+                    <Box
+                      sx={{
+                        width: 10,
+                        height: 10,
+                        borderRadius: "50%",
+                        backgroundColor: "#2196F3",
+                      }}
+                    />
+                    <Typography
+                      variant="caption"
+                      fontWeight="500"
+                      color="#2196F3"
+                    >
+                      {currencyFormatter(totalOnlineRevenue)}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
-              <Typography
-                variant="caption"
-                color="text.secondary"
-                sx={{ mt: 1, display: "block" }}
+
+              {/* Total Orders */}
+              <Box
+                sx={{
+                  flex: 1,
+                  position: "relative",
+                  "&::after": isTablet
+                    ? {}
+                    : {
+                        content: '""',
+                        position: "absolute",
+                        bottom: "-16px",
+                        left: "0",
+                        width: "40%",
+                        height: "4px",
+                        borderRadius: "2px",
+                        background:
+                          "linear-gradient(90deg, #FF9800, transparent)",
+                      },
+                }}
               >
-                {periodData.totalOrders} orders
-              </Typography>
-            </Card>
-          ))}
+                <Typography
+                  variant="subtitle2"
+                  color="text.secondary"
+                  gutterBottom
+                >
+                  Total Orders
+                </Typography>
+                <Typography
+                  variant="h4"
+                  fontWeight="700"
+                  sx={{
+                    fontSize: { xs: "1.75rem", sm: "2rem" },
+                    textShadow: "0 2px 4px rgba(0,0,0,0.05)",
+                  }}
+                >
+                  {totalOrders}
+                </Typography>
+                <Chip
+                  size="small"
+                  label={`Avg. ${currencyFormatter(
+                    totalOrders ? totalRevenue / totalOrders : 0
+                  )}/order`}
+                  sx={{
+                    mt: 1.5,
+                    backgroundColor: alpha("#FF9800", 0.15),
+                    color: "#E65100",
+                    fontWeight: 500,
+                    py: 0.5,
+                    borderRadius: "8px",
+                    transition: "all 0.2s ease",
+                    "&:hover": {
+                      backgroundColor: alpha("#FF9800", 0.25),
+                    },
+                  }}
+                />
+              </Box>
+
+              {/* Best Performing Period */}
+              {highestRevenuePeriod && (
+                <Box
+                  sx={{
+                    flex: 1,
+                    position: "relative",
+                    "&::after": isTablet
+                      ? {}
+                      : {
+                          content: '""',
+                          position: "absolute",
+                          bottom: "-16px",
+                          left: "0",
+                          width: "40%",
+                          height: "4px",
+                          borderRadius: "2px",
+                          background:
+                            "linear-gradient(90deg, #9C27B0, transparent)",
+                        },
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Best Performing Period
+                  </Typography>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <TrendingUpIcon
+                      sx={{
+                        color: "#4CAF50",
+                        filter: "drop-shadow(0 2px 3px rgba(0,0,0,0.1))",
+                      }}
+                    />
+                    <Typography
+                      variant="h6"
+                      fontWeight="600"
+                      sx={{
+                        fontSize: { xs: "1.1rem", sm: "1.25rem" },
+                        textShadow: "0 1px 2px rgba(0,0,0,0.05)",
+                      }}
+                    >
+                      {highestRevenuePeriod.period}
+                    </Typography>
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ mt: 1.5 }}
+                  >
+                    {currencyFormatter(
+                      highestRevenuePeriod.cashRevenue +
+                        highestRevenuePeriod.onlineRevenue
+                    )}
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      sx={{
+                        ml: 1,
+                        backgroundColor: alpha(
+                          theme.palette.text.secondary,
+                          0.1
+                        ),
+                        px: 1,
+                        py: 0.3,
+                        borderRadius: 1,
+                      }}
+                    >
+                      {highestRevenuePeriod.totalOrders} orders
+                    </Typography>
+                  </Typography>
+                </Box>
+              )}
+            </Stack>
+          </Card>
         </Box>
       )}
 
       {/* Bar Chart */}
-      <Box
+      <Card
+        elevation={0}
         sx={{
-          backgroundColor: "rgba(255, 255, 255, 0.9)",
-          borderRadius: "12px",
-          padding: "16px",
+          borderRadius: "16px",
+          overflow: "hidden",
+          backgroundColor: alpha(theme.palette.background.paper, 0.6),
+          backdropFilter: "blur(10px)",
+          border: `1px solid ${alpha(theme.palette.primary.main, 0.1)}`,
+          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            boxShadow: "0 8px 30px rgba(0,0,0,0.12)",
+          },
         }}
       >
         {chartData.length > 0 ? (
-          <BarChart
-            dataset={chartData}
-            xAxis={[
-              {
-                dataKey: "period",
-                scaleType: "band",
-                tickLabelStyle: {
-                  angle: timeRange === "daily" ? 0 : -45,
-                  textAnchor: timeRange === "daily" ? "middle" : "end",
+          <Box
+            sx={{
+              p: { xs: 1.5, sm: 2.5 },
+              overflow: "auto",
+              maxHeight: "500px",
+              width: "100%",
+              minWidth:
+                chartData.length > 6 ? `${chartData.length * 100}px` : "100%",
+              "&::-webkit-scrollbar": {
+                width: "8px",
+                height: "8px",
+              },
+              "&::-webkit-scrollbar-thumb": {
+                backgroundColor: alpha(theme.palette.primary.main, 0.2),
+                borderRadius: "8px",
+                "&:hover": {
+                  backgroundColor: alpha(theme.palette.primary.main, 0.3),
                 },
               },
-            ]}
-            {...getChartSettings()}
-          />
+              "&::-webkit-scrollbar-track": {
+                backgroundColor: alpha(theme.palette.background.paper, 0.3),
+                borderRadius: "8px",
+              },
+            }}
+          >
+            <BarChart
+              dataset={chartData}
+              xAxis={[
+                {
+                  dataKey: "period",
+                  scaleType: "band",
+                  tickLabelStyle: {
+                    angle: timeRange === "daily" ? 0 : -45,
+                    textAnchor: timeRange === "daily" ? "middle" : "end",
+                    fontSize: isMobile ? 10 : 12,
+                  },
+                  tickSize: 0,
+                  tickRotation: timeRange === "daily" ? 0 : -45,
+                },
+              ]}
+              {...getChartSettings()}
+            />
+          </Box>
         ) : (
           <Box
             sx={{
@@ -299,15 +787,38 @@ const BarChartDetails = () => {
               justifyContent: "center",
               alignItems: "center",
               height: "300px",
-              color: "text.secondary",
+              p: 3,
+              background: `radial-gradient(circle, ${alpha(
+                theme.palette.background.paper,
+                0.8
+              )} 0%, ${alpha(theme.palette.background.default, 0.4)} 100%)`,
             }}
           >
-            <Typography variant="h6">
-              No data available for the selected time range
-            </Typography>
+            <Box sx={{ textAlign: "center", maxWidth: "400px" }}>
+              <QueryStatsIcon
+                sx={{
+                  fontSize: 70,
+                  color: alpha(theme.palette.text.secondary, 0.4),
+                  mb: 2,
+                  animation: "pulse 2s infinite ease-in-out",
+                  "@keyframes pulse": {
+                    "0%": { opacity: 0.6 },
+                    "50%": { opacity: 0.9 },
+                    "100%": { opacity: 0.6 },
+                  },
+                }}
+              />
+              <Typography variant="h6" color="text.secondary" gutterBottom>
+                No data available
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                There is no revenue data available for the selected time period.
+                Try selecting a different time range.
+              </Typography>
+            </Box>
           </Box>
         )}
-      </Box>
+      </Card>
     </Card>
   );
 };

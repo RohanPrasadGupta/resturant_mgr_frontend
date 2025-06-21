@@ -3,8 +3,8 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box } from "@mui/material";
-import OrderCard from "@/app/components/ordersCards/OrderCard";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
+import OrderCard from "../../components/ordersCards/OrderCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
 
 const page = () => {
   const userData = useSelector((state) => state.selectedUser.value);
@@ -12,9 +12,7 @@ const page = () => {
   const [localStorageData, setLocalStorageData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Move localStorage access to useEffect
   useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
     const storedData =
       typeof window !== "undefined"
         ? JSON.parse(localStorage.getItem("mgrUserData") || "null")

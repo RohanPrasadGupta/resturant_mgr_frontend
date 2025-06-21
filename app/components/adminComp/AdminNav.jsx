@@ -1,83 +1,275 @@
-import { Box, Typography } from "@mui/material";
-import React from "react";
-import { BarChart, Settings } from "@mui/icons-material";
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  useTheme,
+  useMediaQuery,
+  Tooltip,
+  Avatar,
+} from "@mui/material";
+import {
+  BarChart,
+  Settings,
+  Menu as MenuIcon,
+  Dashboard,
+  People,
+  Restaurant,
+  Notifications,
+  ExpandMore,
+  ExpandLess,
+  Brightness4,
+} from "@mui/icons-material";
 
 const AdminNav = ({ setSelectedTab, selectedTab }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
+
   const navItems = [
     {
       id: "visualize",
-      label: "Data Visualization",
-      icon: <BarChart />,
+      label: "Dashboard",
+      icon: <Dashboard />,
     },
     {
       id: "userSettings",
       label: "User Settings",
       icon: <Settings />,
     },
+    {
+      id: "orders",
+      label: "Orders",
+      icon: <Restaurant />,
+      disabled: true,
+    },
+    {
+      id: "customers",
+      label: "Customers",
+      icon: <People />,
+      disabled: true,
+    },
+    {
+      id: "notifications",
+      label: "Notifications",
+      icon: <Notifications />,
+      disabled: true,
+    },
   ];
 
-  return (
-    <Box
-      sx={{
-        padding: { xs: "16px", md: "24px" },
-        height: "100%",
-      }}
-    >
+  const toggleDrawer = (open) => (event) => {
+    if (
+      event.type === "keydown" &&
+      (event.key === "Tab" || event.key === "Shift")
+    ) {
+      return;
+    }
+    setDrawerOpen(open);
+  };
+
+  const handleNavClick = (itemId) => {
+    setSelectedTab(itemId);
+    if (isMobile) {
+      setDrawerOpen(false);
+    }
+  };
+
+  const renderNavItems = () => (
+    <>
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "row", md: "column" },
-          gap: "8px",
-          overflowX: { xs: "auto", md: "visible" },
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "16px 20px",
+          borderBottom: `1px solid ${theme.palette.divider}`,
         }}
       >
-        {navItems.map((item) => (
-          <Box
-            key={item.id}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+          <Avatar
             sx={{
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-              padding: "12px 16px",
-              borderRadius: "8px",
-              cursor: "pointer",
-              transition: "all 0.2s ease-in-out",
-              backgroundColor:
-                selectedTab === item.id ? "#007bff" : "transparent",
-              color: selectedTab === item.id ? "#fff" : "#6c757d",
-              minWidth: { xs: "200px", md: "auto" },
-              "&:hover": {
-                backgroundColor:
-                  selectedTab === item.id ? "#0056b3" : "#f8f9fa",
-                color: selectedTab === item.id ? "#fff" : "#495057",
-                transform: "translateX(4px)",
-              },
+              width: 40,
+              height: 40,
+              bgcolor: theme.palette.primary.main,
             }}
-            onClick={() => setSelectedTab(item.id)}
           >
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                fontSize: "20px",
-              }}
-            >
-              {item.icon}
-            </Box>
-            <Typography
-              variant="body1"
-              sx={{
-                fontWeight: selectedTab === item.id ? 600 : 400,
-                fontSize: { xs: "0.9rem", md: "1rem" },
-                whiteSpace: "nowrap",
-              }}
-            >
-              {item.label}
+            R
+          </Avatar>
+          <Box>
+            <Typography variant="subtitle1" fontWeight={600}>
+              Restaurant Manager
+            </Typography>
+            <Typography variant="caption" color="text.secondary">
+              Admin Panel
             </Typography>
           </Box>
-        ))}
+        </Box>
+        {isMobile && (
+          <IconButton onClick={toggleDrawer(false)} edge="end">
+            {theme.direction === "rtl" ? <ExpandMore /> : <ExpandLess />}
+          </IconButton>
+        )}
       </Box>
-    </Box>
+
+      <List sx={{ padding: "12px" }}>
+        {navItems.map((item) => {
+          const isSelected = selectedTab === item.id;
+          return (
+            <ListItem
+              key={item.id}
+              disablePadding
+              sx={{
+                mb: 1,
+                borderRadius: "10px",
+                overflow: "hidden",
+                backgroundColor: isSelected
+                  ? theme.palette.primary.main
+                  : "transparent",
+                "&:hover": {
+                  backgroundColor: isSelected
+                    ? theme.palette.primary.dark
+                    : theme.palette.action.hover,
+                },
+              }}
+            >
+              <Tooltip
+                title={item.disabled ? "Coming soon" : ""}
+                placement="right"
+              >
+                <Box
+                  onClick={() => !item.disabled && handleNavClick(item.id)}
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    width: "100%",
+                    padding: "10px 16px",
+                    opacity: item.disabled ? 0.5 : 1,
+                    cursor: item.disabled ? "default" : "pointer",
+                    transition: "all 0.2s",
+                    "&:hover": {
+                      transform: !item.disabled ? "translateX(4px)" : "none",
+                    },
+                  }}
+                >
+                  <ListItemIcon
+                    sx={{
+                      minWidth: 40,
+                      color: isSelected ? "#fff" : theme.palette.text.primary,
+                    }}
+                  >
+                    {item.icon}
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={item.label}
+                    sx={{
+                      color: isSelected ? "#fff" : theme.palette.text.primary,
+                      "& .MuiTypography-root": {
+                        fontWeight: isSelected ? 600 : 400,
+                      },
+                    }}
+                  />
+                </Box>
+              </Tooltip>
+            </ListItem>
+          );
+        })}
+      </List>
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      <Box
+        sx={{
+          padding: "16px",
+          mt: "auto",
+          borderTop: `1px solid ${theme.palette.divider}`,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "10px",
+            borderRadius: "10px",
+            backgroundColor: theme.palette.background.paper,
+            boxShadow: "0 2px 8px rgba(0,0,0,0.05)",
+          }}
+        >
+          <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+            <Brightness4 fontSize="small" color="action" />
+            <Typography variant="body2" color="text.secondary">
+              v1.0.0
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+    </>
+  );
+
+  return (
+    <>
+      {isMobile ? (
+        <>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "16px",
+              borderBottom: `1px solid ${theme.palette.divider}`,
+            }}
+          >
+            <Typography variant="h6" fontWeight={600}>
+              Admin Panel
+            </Typography>
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={toggleDrawer(true)}
+              sx={{ mr: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
+          </Box>
+          <Drawer
+            anchor="left"
+            open={drawerOpen}
+            onClose={toggleDrawer(false)}
+            sx={{
+              "& .MuiDrawer-paper": {
+                width: 280,
+                boxSizing: "border-box",
+                borderRadius: { xs: "0 16px 16px 0", md: 0 },
+              },
+            }}
+          >
+            <Box
+              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            >
+              {renderNavItems()}
+            </Box>
+          </Drawer>
+        </>
+      ) : (
+        <Box
+          sx={{
+            height: "100%",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          {renderNavItems()}
+        </Box>
+      )}
+    </>
   );
 };
 

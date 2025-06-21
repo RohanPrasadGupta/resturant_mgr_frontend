@@ -15,9 +15,7 @@ const OrderPage = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [tableNumber, setTableNumber] = useState("");
 
-  // Step 1: Get the table number from localStorage or Redux first
   useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
     if (typeof window !== "undefined") {
       const storedData = JSON.parse(
         localStorage.getItem("mgrUserData") || "null"
@@ -38,12 +36,10 @@ const OrderPage = () => {
     }
   }, [userData]);
 
-  // Identify user type for potential UI differences
   const isCustomer =
     userData?.username === "customer" ||
     localStorageData?.username === "customer";
 
-  // Step 2: Only enable the query when we have a table number
   const { isPending, isError, data, error } = useQuery({
     queryKey: ["getCustomerOrder", tableNumber],
     queryFn: () => {
@@ -54,21 +50,18 @@ const OrderPage = () => {
         `https://resturant-mgr-backend.onrender.com/api/order/table-number/${tableNumber}`
       ).then((res) => res.json());
     },
-    enabled: !!tableNumber && !isLoading, // Only run query when tableNumber is available
+    enabled: !!tableNumber && !isLoading,
     retry: 1,
-    staleTime: 30000, // Cache results for 30 seconds
+    staleTime: 30000,
   });
 
-  // For debugging
   useEffect(() => {
     console.log("Current table number:", tableNumber);
     console.log("Order data:", data);
   }, [tableNumber, data]);
 
-  // Show loading state
   if (isLoading || isPending) return <LoaderComp />;
 
-  // Show error state
   if (isError) {
     return (
       <Container className={styles.errorContainer}>
@@ -81,7 +74,6 @@ const OrderPage = () => {
     );
   }
 
-  // No table number selected
   if (!tableNumber) {
     return (
       <Container className={styles.emptyStateContainer}>
@@ -97,7 +89,6 @@ const OrderPage = () => {
     );
   }
 
-  // No active order for this table
   if (data?.message === "No active order found for this table number") {
     return (
       <Container className={styles.noOrderContainer}>
@@ -122,7 +113,6 @@ const OrderPage = () => {
     );
   }
 
-  // Show order data
   return (
     <Container className={styles.pageContainer}>
       <OrderCard orderData={data?.order} />
