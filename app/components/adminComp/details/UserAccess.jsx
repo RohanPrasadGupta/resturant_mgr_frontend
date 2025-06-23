@@ -13,6 +13,20 @@ import {
   useTheme,
   Tooltip,
   Grid,
+  Switch,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  Alert,
+  Snackbar,
+  DialogContentText,
 } from "@mui/material";
 import {
   Person,
@@ -20,6 +34,9 @@ import {
   Add,
   Email as EmailIcon,
   CalendarToday as CalendarIcon,
+  Delete as DeleteIcon,
+  Edit as EditIcon,
+  Warning as WarningIcon,
 } from "@mui/icons-material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CreateUser from "../details/adminComponent/CreateUser";
@@ -27,7 +44,24 @@ import LoaderComp from "../../LoaderComp/LoadingComp";
 
 const UserAccess = () => {
   const theme = useTheme();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [userToDelete, setUserToDelete] = useState(null);
+  const [editForm, setEditForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+    role: "user",
+  });
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -46,6 +80,11 @@ const UserAccess = () => {
     }
   };
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+  // Fetch users query
   const {
     isLoading,
     data: userData,
@@ -58,8 +97,161 @@ const UserAccess = () => {
       ),
   });
 
+  // Toggle user status mutation
+  const toggleStatusMutation = useMutation({
+    mutationFn: async (userId) => {
+      const response = await fetch(
+        `https://resturant-mgr-backend.onrender.com/api/users/status/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to toggle user status");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["getAllUsers"]);
+      showSnackbar("User status updated successfully!");
+    },
+    onError: (error) => {
+      showSnackbar(`Error: ${error.message}`, "error");
+    },
+  });
+
+  // Delete user mutation
+  const deleteUserMutation = useMutation({
+    mutationFn: async (userId) => {
+      const response = await fetch(
+        `https://resturant-mgr-backend.onrender.com/api/users/${userId}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to delete user");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["getAllUsers"]);
+      showSnackbar("User deleted successfully!");
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+    onError: (error) => {
+      showSnackbar(`Error: ${error.message}`, "error");
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+    },
+  });
+
+  // Edit user mutation
+  const editUserMutation = useMutation({
+    mutationFn: async ({ userId, userData }) => {
+      const response = await fetch(
+        `https://resturant-mgr-backend.onrender.com/api/users/${userId}`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userData),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to update user");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries(["getAllUsers"]);
+      showSnackbar("User updated successfully!");
+      setEditDialogOpen(false);
+      setSelectedUser(null);
+      setEditForm({ name: "", email: "", password: "", role: "user" });
+    },
+    onError: (error) => {
+      showSnackbar(`Error: ${error.message}`, "error");
+    },
+  });
+
+  // Handle toggle status
+  const handleToggleStatus = (userId) => {
+    toggleStatusMutation.mutate(userId);
+  };
+
+  // Handle delete user - open confirmation dialog
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  // Confirm delete user
+  const confirmDeleteUser = () => {
+    if (userToDelete) {
+      deleteUserMutation.mutate(userToDelete._id);
+    }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setDeleteDialogOpen(false);
+    setUserToDelete(null);
+  };
+
+  // Handle edit user
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditForm({
+      name: user.name,
+      email: user.email,
+      password: "", // Don't prefill password for security
+      role: user.role,
+    });
+    setEditDialogOpen(true);
+  };
+
+  // Handle edit form submission
+  const handleEditSubmit = () => {
+    if (!editForm.name || !editForm.email) {
+      showSnackbar("Name and email are required!", "error");
+      return;
+    }
+
+    const updateData = {
+      name: editForm.name,
+      email: editForm.email,
+      role: editForm.role,
+    };
+
+    // Only include password if it's provided
+    if (editForm.password.trim()) {
+      updateData.password = editForm.password;
+    }
+
+    editUserMutation.mutate({
+      userId: selectedUser._id,
+      userData: updateData,
+    });
+  };
+
   if (isLoading) {
     return <LoaderComp />;
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3, textAlign: "center" }}>
+        <Typography variant="h6" color="error">
+          Error fetching user data. Please try again later.
+        </Typography>
+      </Box>
+    );
   }
 
   return (
@@ -146,7 +338,7 @@ const UserAccess = () => {
             gap: "20px",
           }}
         >
-          {userData.map((user) => (
+          {userData?.map((user) => (
             <Card
               key={user._id}
               sx={{
@@ -195,8 +387,8 @@ const UserAccess = () => {
                       sx={{
                         bgcolor:
                           user?.role === "admin"
-                            ? "rgba(220, 53, 69, 0.1)"
-                            : "rgba(0, 123, 255, 0.1)",
+                            ? "rgba(255, 87, 34, 0.1)"
+                            : "rgba(255, 152, 0, 0.1)",
                         width: 45,
                         height: 45,
                         boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
@@ -205,14 +397,14 @@ const UserAccess = () => {
                       {user?.role === "admin" ? (
                         <AdminPanelSettings
                           sx={{
-                            color: "#dc3545",
+                            color: "#ff5722",
                             fontSize: "1.4rem",
                           }}
                         />
                       ) : (
                         <Person
                           sx={{
-                            color: "#007bff",
+                            color: "#ff9800",
                             fontSize: "1.4rem",
                           }}
                         />
@@ -241,25 +433,27 @@ const UserAccess = () => {
                     </Box>
                   </Box>
 
-                  <Chip
-                    label={user?.isActive === true ? "Active" : "Inactive"}
-                    color={user?.isActive === true ? "success" : "default"}
-                    size="small"
-                    sx={{
-                      borderRadius: "6px",
-                      fontWeight: 600,
-                      fontSize: "0.7rem",
-                      textTransform: "uppercase",
-                      letterSpacing: "0.5px",
-                      boxShadow:
-                        user?.isActive === true
-                          ? "0 2px 6px rgba(76, 175, 80, 0.2)"
-                          : "none",
-                    }}
-                  />
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Chip
+                      label={user?.isActive === true ? "Active" : "Inactive"}
+                      color={user?.isActive === true ? "success" : "default"}
+                      size="small"
+                      sx={{
+                        borderRadius: "6px",
+                        fontWeight: 600,
+                        fontSize: "0.7rem",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
+                        boxShadow:
+                          user?.isActive === true
+                            ? "0 2px 6px rgba(76, 175, 80, 0.2)"
+                            : "none",
+                      }}
+                    />
+                  </Box>
                 </Box>
 
-                {/* User details section with styled email and date */}
+                {/* User details section */}
                 <Box sx={{ mt: 2 }}>
                   <Grid container spacing={1}>
                     <Grid item xs={12}>
@@ -270,23 +464,13 @@ const UserAccess = () => {
                           gap: 1,
                           p: 1,
                           borderRadius: "8px",
-                          bgcolor: alpha(theme.palette.primary.main, 0.05),
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            bgcolor: alpha(theme.palette.primary.main, 0.1),
-                          },
+                          bgcolor: alpha("#ff5722", 0.05),
                         }}
                       >
                         <EmailIcon
-                          sx={{
-                            color: "#2196f3",
-                            fontSize: "1rem",
-                          }}
+                          sx={{ color: "#ff5722", fontSize: "1rem" }}
                         />
-                        <Tooltip
-                          title={user?.email || "No email provided"}
-                          placement="top"
-                        >
+                        <Tooltip title={user?.email || "No email provided"}>
                           <Typography
                             variant="body2"
                             sx={{
@@ -311,18 +495,11 @@ const UserAccess = () => {
                           gap: 1,
                           p: 1,
                           borderRadius: "8px",
-                          bgcolor: alpha(theme.palette.secondary.main, 0.05),
-                          transition: "all 0.2s ease",
-                          "&:hover": {
-                            bgcolor: alpha(theme.palette.secondary.main, 0.1),
-                          },
+                          bgcolor: alpha("#ff9800", 0.05),
                         }}
                       >
                         <CalendarIcon
-                          sx={{
-                            color: "#9c27b0",
-                            fontSize: "1rem",
-                          }}
+                          sx={{ color: "#ff9800", fontSize: "1rem" }}
                         />
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           Created: {formatDate(user?.createdAt)}
@@ -331,11 +508,338 @@ const UserAccess = () => {
                     </Grid>
                   </Grid>
                 </Box>
+
+                {/* Action buttons */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    mt: 3,
+                    pt: 2,
+                    borderTop: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
+                  }}
+                >
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                      Status:
+                    </Typography>
+                    <Switch
+                      checked={user?.isActive === true}
+                      onChange={() => handleToggleStatus(user._id)}
+                      size="small"
+                      sx={{
+                        "& .MuiSwitch-thumb": {
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        },
+                        "& .MuiSwitch-track": {
+                          backgroundColor: user?.isActive
+                            ? "#ff9800"
+                            : undefined,
+                        },
+                        "& .Mui-checked": {
+                          color: "#ff5722 !important",
+                        },
+                        "& .Mui-checked + .MuiSwitch-track": {
+                          backgroundColor: "#ff9800 !important",
+                        },
+                      }}
+                    />
+                  </Box>
+
+                  <Box sx={{ display: "flex", gap: 1 }}>
+                    <Tooltip title="Edit User">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleEditUser(user)}
+                        sx={{
+                          background:
+                            "linear-gradient(90deg, #ff5722, #ff9800)",
+                          color: "white",
+                          width: 32,
+                          height: 32,
+                          "&:hover": {
+                            background:
+                              "linear-gradient(90deg, #e64a19, #f57c00)",
+                            transform: "scale(1.1)",
+                          },
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+
+                    <Tooltip title="Delete User">
+                      <IconButton
+                        size="small"
+                        onClick={() => handleDeleteUser(user)}
+                        sx={{
+                          background:
+                            "linear-gradient(90deg, #ff5722, #ff9800)",
+                          color: "white",
+                          width: 32,
+                          height: 32,
+                          "&:hover": {
+                            background:
+                              "linear-gradient(90deg, #d32f2f, #f57c00)",
+                            transform: "scale(1.1)",
+                          },
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                </Box>
               </CardContent>
             </Card>
           ))}
         </Box>
       </Paper>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialogOpen}
+        onClose={cancelDelete}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12px",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.2)",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            gap: 2,
+            color: "#ff5722",
+            fontWeight: 600,
+          }}
+        >
+          <WarningIcon sx={{ fontSize: "2rem", color: "#ff5722" }} />
+          Confirm Delete User
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ fontSize: "1rem", lineHeight: 1.6 }}>
+            Are you sure you want to delete the user{" "}
+            <strong style={{ color: theme.palette.text.primary }}>
+              {userToDelete?.name}
+            </strong>
+            ?
+            <br />
+            <br />
+            <span style={{ color: "#ff5722", fontWeight: 500 }}>
+              This action cannot be undone.
+            </span>{" "}
+            All data associated with this user will be permanently removed from
+            the system.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ padding: "16px 24px" }}>
+          <Button
+            onClick={cancelDelete}
+            variant="outlined"
+            sx={{
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              borderColor: "#ff9800",
+              color: "#ff9800",
+              "&:hover": {
+                borderColor: "#ff5722",
+                backgroundColor: alpha("#ff5722", 0.05),
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={confirmDeleteUser}
+            variant="contained"
+            disabled={deleteUserMutation.isLoading}
+            sx={{
+              borderRadius: "8px",
+              textTransform: "none",
+              fontWeight: 600,
+              px: 3,
+              background: "linear-gradient(90deg, #ff5722, #ff9800) !important",
+              boxShadow: "0 4px 12px rgba(255, 87, 34, 0.3)",
+              "&:hover": {
+                boxShadow: "0 6px 16px rgba(255, 87, 34, 0.4)",
+                transform: "translateY(-1px)",
+              },
+              transition: "all 0.2s ease",
+            }}
+          >
+            {deleteUserMutation.isLoading ? "Deleting..." : "Delete User"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog
+        open={editDialogOpen}
+        onClose={() => setEditDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+        sx={{
+          "& .MuiDialog-paper": {
+            borderRadius: "12px",
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{ fontWeight: 600, fontSize: "1.25rem", color: "#ff5722" }}
+        >
+          Edit User
+        </DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mt: 1 }}>
+            <TextField
+              label="Name"
+              value={editForm.name}
+              onChange={(e) =>
+                setEditForm({ ...editForm, name: e.target.value })
+              }
+              fullWidth
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#ff5722",
+                  },
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ff5722",
+                },
+              }}
+            />
+            <TextField
+              label="Email"
+              type="email"
+              value={editForm.email}
+              onChange={(e) =>
+                setEditForm({ ...editForm, email: e.target.value })
+              }
+              fullWidth
+              required
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#ff5722",
+                  },
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ff5722",
+                },
+              }}
+            />
+            <TextField
+              label="Password (Leave empty to keep current)"
+              type="password"
+              value={editForm.password}
+              onChange={(e) =>
+                setEditForm({ ...editForm, password: e.target.value })
+              }
+              fullWidth
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  "&.Mui-focused fieldset": {
+                    borderColor: "#ff5722",
+                  },
+                },
+                "& .MuiInputLabel-root.Mui-focused": {
+                  color: "#ff5722",
+                },
+              }}
+            />
+            <FormControl fullWidth>
+              <InputLabel
+                sx={{
+                  "&.Mui-focused": {
+                    color: "#ff5722",
+                  },
+                }}
+              >
+                Role
+              </InputLabel>
+              <Select
+                value={editForm.role}
+                label="Role"
+                onChange={(e) =>
+                  setEditForm({ ...editForm, role: e.target.value })
+                }
+                sx={{
+                  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+                    borderColor: "#ff5722",
+                  },
+                }}
+              >
+                <MenuItem value="user">User</MenuItem>
+                <MenuItem value="admin">Admin</MenuItem>
+              </Select>
+            </FormControl>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ padding: "16px 24px" }}>
+          <Button
+            onClick={() => setEditDialogOpen(false)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              color: "#ff9800",
+              "&:hover": {
+                backgroundColor: alpha("#ff9800", 0.05),
+              },
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleEditSubmit}
+            variant="contained"
+            disabled={editUserMutation.isLoading}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: "8px",
+              px: 3,
+              background: "linear-gradient(90deg, #ff5722, #ff9800) !important",
+              boxShadow: "0 4px 12px rgba(255, 87, 34, 0.3)",
+              "&:hover": {
+                boxShadow: "0 6px 16px rgba(255, 87, 34, 0.4)",
+                transform: "translateY(-1px)",
+              },
+              transition: "all 0.2s ease",
+            }}
+          >
+            {editUserMutation.isLoading ? "Updating..." : "Update User"}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
       <CreateUser open={open} handleClose={handleClose} />
     </>
   );
