@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   CardMedia,
@@ -21,11 +21,29 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import styles from "./ItemCardStyle.module.scss";
 import classNames from "classnames";
+import { useSelector } from "react-redux";
 
 const ItemCard = ({ data }) => {
   const { name, description, price, category, image, available } = data;
   const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
+  const userData = useSelector((state) => state.selectedUser.value);
+  const [localStorageData, setLocalStorageData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const storedData =
+      typeof window !== "undefined"
+        ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
+        : null;
+
+    setLocalStorageData(storedData);
+    setIsLoading(false);
+  }, []);
+
+  useEffect(() => {
+    console.log("userData,localStorageData", userData, localStorageData);
+  }, [userData, localStorageData]);
 
   const handleQuantityChange = (event) => {
     const value = parseInt(event.target.value, 10);

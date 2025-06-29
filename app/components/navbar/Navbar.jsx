@@ -66,7 +66,10 @@ const Navbar = () => {
   // console.log("userData", process.env.PROD_BACKEDN);
 
   const isStaff =
-    localStorageData?.username === "staff" || userData?.username === "staff";
+    localStorageData?.username === "staff" ||
+    userData?.username === "staff" ||
+    localStorageData?.username === "admin" ||
+    userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
