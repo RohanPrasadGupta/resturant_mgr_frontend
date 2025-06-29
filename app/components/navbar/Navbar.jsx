@@ -45,13 +45,13 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SignIn from "../signIn/SignIn";
 import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signInClicked, setSignInClicked] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
   const [localStorageData, setLocalStorageData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
@@ -63,13 +63,15 @@ const Navbar = () => {
     localStorageData?.username === "customer" ||
     userData?.username === "customer";
 
+  // console.log("userData", process.env.PROD_BACKEDN);
+
   const isStaff =
     localStorageData?.username === "staff" || userData?.username === "staff";
 
   const isActive = (path) => pathname === path;
 
   const {
-    isPending,
+    isLoading,
     isError,
     data: tables,
     error,
@@ -79,6 +81,24 @@ const Navbar = () => {
       fetch("https://resturant-mgr-backend.onrender.com/api/tables").then(
         (res) => res.json()
       ),
+  });
+
+  const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
+    mutationFn: () =>
+      fetch("https://resturant-mgr-backend.onrender.com/api/users/logout", {
+        method: "POST",
+        credentials: "include", // Important for cookie clearing
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      localStorage.removeItem("mgrUserData");
+      dispatch(logoutUserRedux());
+      setLogoutDialogOpen(false);
+      toast.success("Successfully logged out");
+      // window.location.reload();
+    },
+    onError: () => {
+      toast.error("Logout failed.");
+    },
   });
 
   // Get table from URL parameters or localStorage
@@ -105,7 +125,6 @@ const Navbar = () => {
         : null;
 
     setLocalStorageData(storedData);
-    setIsLoading(false);
   }, []);
 
   const handleDrawerToggle = () => {
@@ -136,10 +155,7 @@ const Navbar = () => {
   };
 
   const handleConfirmLogout = () => {
-    localStorage.removeItem("mgrUserData");
-    dispatch(logoutUserRedux());
-    setLogoutDialogOpen(false);
-    toast.success("Successfully logged out");
+    logoutUser();
   };
 
   const navItems = [
@@ -196,7 +212,7 @@ const Navbar = () => {
                     startAdornment={
                       <TableRestaurantIcon className={styles.tableIcon} />
                     }
-                    disabled={isPending}
+                    disabled={isLoading}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -214,7 +230,7 @@ const Navbar = () => {
                       ))}
                   </Select>
                 </FormControl>
-                {isPending && (
+                {isLoading && (
                   <CircularProgress
                     size={20}
                     className={styles.tableSelectLoader}
@@ -288,7 +304,7 @@ const Navbar = () => {
                         startAdornment={
                           <TableRestaurantIcon className={styles.tableIcon} />
                         }
-                        disabled={isPending}
+                        disabled={isLoading}
                       >
                         <MenuItem value="">
                           <em>Select Table</em>
@@ -307,13 +323,12 @@ const Navbar = () => {
                 </>
               )}
 
-              {isPending ||
-                (isLoading && (
-                  <CircularProgress
-                    size={20}
-                    className={styles.tableSelectLoader}
-                  />
-                ))}
+              {isLoading && (
+                <CircularProgress
+                  size={20}
+                  className={styles.tableSelectLoader}
+                />
+              )}
             </Box>
           )}
 

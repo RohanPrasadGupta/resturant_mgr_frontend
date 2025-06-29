@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
-import ItemCard from "@/app/components/itemCard/ItemCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import ItemCard from "../../components/itemCard/ItemCard";
 import {
   Box,
   Container,

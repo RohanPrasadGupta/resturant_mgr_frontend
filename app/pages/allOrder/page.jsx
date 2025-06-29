@@ -3,8 +3,9 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box } from "@mui/material";
-import OrderCard from "@/app/components/ordersCards/OrderCard";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
+import OrderCard from "../../components/ordersCards/OrderCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import axios from "axios";
 
 const page = () => {
   const userData = useSelector((state) => state.selectedUser.value);
@@ -12,9 +13,7 @@ const page = () => {
   const [localStorageData, setLocalStorageData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Move localStorage access to useEffect
   useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
     const storedData =
       typeof window !== "undefined"
         ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
@@ -24,30 +23,47 @@ const page = () => {
     setIsLoading(false);
   }, []);
 
-  const isCustomer =
-    userData?.username === "customer" ||
-    localStorageData?.username === "customer";
+  const getOrder = async () => {
+    const response = await axios.get(
+      "https://resturant-mgr-backend.onrender.com/api/orders",
+      // "http://localhost:5000/api/orders",
+      {
+        withCredentials: true,
+      }
+    );
 
-  const isStaff =
-    userData?.username === "staff" || localStorageData?.username === "staff";
+    return response.data;
+  };
 
-  const { isPending, isError, data, error } = useQuery({
+  const {
+    isLoading: dataLoading,
+    data,
+    error,
+  } = useQuery({
     queryKey: ["getOrder"],
-    queryFn: () =>
-      fetch(`https://resturant-mgr-backend.onrender.com/api/orders`).then(
-        (res) => res.json()
-      ),
+    queryFn: getOrder,
   });
 
-  useEffect(() => {
-    console.log("data", data);
-  }, [data]);
+  if (dataLoading || isLoading) return <LoaderComp />;
 
-  if (isPending || isLoading) return <LoaderComp />;
-
-  if (isError) {
+  if (error) {
     return (
-      <Container className={styles.errorContainer}>
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
+          width: "100%",
+          padding: { xs: "0 16px", sm: "0 24px" },
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+        }}
+      >
+        <Alert severity="error">
+          You are not authorized to view this page.
+        </Alert>
         <Alert severity="error">Error loading order: {error.message}</Alert>
       </Container>
     );
