@@ -25,6 +25,6 @@
     "**/*.ts",
     "**/*.tsx",
     "app/pages/admin/page.jsx"
-  ],
+, "app/lib/auth.jsx"  ],
   "exclude": ["node_modules"]
 }

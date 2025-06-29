@@ -20,6 +20,8 @@
     "axios": "^1.10.0",
     "chart.js": "^4.5.0",
     "classnames": "^2.5.1",
+    "dotenv": "^17.0.0",
+    "jsonwebtoken": "^9.0.2",
     "next": "15.1.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

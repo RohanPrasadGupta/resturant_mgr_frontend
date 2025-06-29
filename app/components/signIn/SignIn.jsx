@@ -27,27 +27,17 @@ const SignIn = ({ handleClose }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const response = await fetch("http://localhost:5000/api/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ email, password }),
-      });
-
-      // const response = await fetch(
-      //   // "https://resturant-mgr-backend.onrender.com/api/users/login",
-      //   "http://localhost:5000/api/users/login",
-      //   {
-      //     method: "POST",
-      //     headers: {
-      //       "Content-Type": "application/json",
-      //     },
-      //     credentials: "include", // Include cookies in the request
-      //     body: JSON.stringify(formData),
-      //   }
-      // );
+      const response = await fetch(
+        "https://resturant-mgr-backend.onrender.com/api/users/login",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
+        }
+      );
 
       return response.json();
     },
@@ -73,7 +63,7 @@ const SignIn = ({ handleClose }) => {
 
         handleClose();
         // relode when successful login
-        window.location.reload();
+        // window.location.reload();
       }
     },
     onError: () => {

@@ -23,12 +23,6 @@ const page = () => {
     setIsLoading(false);
   }, []);
 
-  const isStaffOrAdmin =
-    userData?.username === "staff" ||
-    localStorageData?.username === "staff" ||
-    userData?.username === "admin" ||
-    localStorageData?.username === "admin";
-
   const getOrder = async () => {
     const response = await axios.get(
       "https://resturant-mgr-backend.onrender.com/api/orders",
@@ -52,7 +46,7 @@ const page = () => {
 
   if (dataLoading || isLoading) return <LoaderComp />;
 
-  if (!isStaffOrAdmin)
+  if (error) {
     return (
       <Container
         maxWidth={false}
@@ -70,24 +64,6 @@ const page = () => {
         <Alert severity="error">
           You are not authorized to view this page.
         </Alert>
-      </Container>
-    );
-
-  if (error) {
-    return (
-      <Container
-        maxWidth={false}
-        disableGutters
-        sx={{
-          width: "100%",
-          padding: { xs: "0 16px", sm: "0 24px" },
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#f5f5f5",
-        }}
-      >
         <Alert severity="error">Error loading order: {error.message}</Alert>
       </Container>
     );
