@@ -16,11 +16,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import styles from "./signIn.module.scss";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import {
-  loginUserRedux,
-  logoutUserRedux,
-  updateTableNumberRedux,
-} from "../../redux/storeSlice/loginUserSlice";
+import { loginUserRedux } from "../../redux/storeSlice/loginUserSlice";
 import { useDispatch } from "react-redux";
 
 const SignIn = ({ handleClose }) => {
@@ -31,17 +27,27 @@ const SignIn = ({ handleClose }) => {
 
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const formData = { email, password };
-      const response = await fetch(
-        "https://resturant-mgr-backend.onrender.com/api/users/login",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(formData),
-        }
-      );
+      const response = await fetch("http://localhost:5000/api/users/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      });
+
+      // const response = await fetch(
+      //   // "https://resturant-mgr-backend.onrender.com/api/users/login",
+      //   "http://localhost:5000/api/users/login",
+      //   {
+      //     method: "POST",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     credentials: "include", // Include cookies in the request
+      //     body: JSON.stringify(formData),
+      //   }
+      // );
 
       return response.json();
     },
@@ -64,7 +70,10 @@ const SignIn = ({ handleClose }) => {
             tableNumber: data?.tableId || "",
           })
         );
+
         handleClose();
+        // relode when successful login
+        window.location.reload();
       }
     },
     onError: () => {

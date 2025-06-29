@@ -140,6 +140,7 @@ const Navbar = () => {
     dispatch(logoutUserRedux());
     setLogoutDialogOpen(false);
     toast.success("Successfully logged out");
+    window.location.reload();
   };
 
   const navItems = [

@@ -5,6 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box } from "@mui/material";
 import OrderCard from "../../components/ordersCards/OrderCard";
 import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import axios from "axios";
 
 const page = () => {
   const userData = useSelector((state) => state.selectedUser.value);
@@ -22,32 +23,32 @@ const page = () => {
     setIsLoading(false);
   }, []);
 
-  const isCustomer =
-    userData?.username === "customer" ||
-    localStorageData?.username === "customer";
-
   const isStaffOrAdmin =
     userData?.username === "staff" ||
     localStorageData?.username === "staff" ||
     userData?.username === "admin" ||
     localStorageData?.username === "admin";
 
+  const getOrder = async () => {
+    const response = await axios.get(
+      "https://resturant-mgr-backend.onrender.com/api/orders",
+      // "http://localhost:5000/api/orders",
+      {
+        withCredentials: true,
+      }
+    );
+
+    return response.data;
+  };
+
   const {
     isLoading: dataLoading,
-    isError,
     data,
     error,
   } = useQuery({
     queryKey: ["getOrder"],
-    queryFn: () =>
-      fetch(`https://resturant-mgr-backend.onrender.com/api/orders`).then(
-        (res) => res.json()
-      ),
+    queryFn: getOrder,
   });
-
-  useEffect(() => {
-    console.log("data", data);
-  }, [data]);
 
   if (dataLoading || isLoading) return <LoaderComp />;
 
@@ -72,7 +73,7 @@ const page = () => {
       </Container>
     );
 
-  if (isError) {
+  if (error) {
     return (
       <Container
         maxWidth={false}
