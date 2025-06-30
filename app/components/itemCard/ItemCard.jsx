@@ -39,11 +39,16 @@ const ItemCard = ({ data }) => {
 
     setLocalStorageData(storedData);
     setIsLoading(false);
-  }, []);
-
-  useEffect(() => {
-    console.log("userData,localStorageData", userData, localStorageData);
   }, [userData, localStorageData]);
+
+  // useEffect(() => {
+  //   console.log(
+  //     "userData,localStorageData,isLoading",
+  //     userData,
+  //     localStorageData,
+  //     isLoading
+  //   );
+  // }, [userData, localStorageData, isLoading]);
 
   const handleQuantityChange = (event) => {
     const value = parseInt(event.target.value, 10);
