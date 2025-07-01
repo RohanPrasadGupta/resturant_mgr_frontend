@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box } from "@mui/material";
 import OrderCard from "../../components/ordersCards/OrderCard";
 import LoaderComp from "../../components/LoaderComp/LoadingComp";
@@ -26,12 +26,10 @@ const page = () => {
   const getOrder = async () => {
     const response = await axios.get(
       "https://resturant-mgr-backend.onrender.com/api/orders",
-      // "http://localhost:5000/api/orders",
       {
         withCredentials: true,
       }
     );
-
     return response.data;
   };
 
@@ -42,54 +40,65 @@ const page = () => {
   } = useQuery({
     queryKey: ["getOrder"],
     queryFn: getOrder,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchInterval: false,
+    staleTime: 5 * 60 * 1000,
   });
+
+  useEffect(() => {
+    console.log("data", data);
+  }, [data]);
 
   if (dataLoading || isLoading) return <LoaderComp />;
 
   if (error) {
     return (
-      <Container
-        maxWidth={false}
-        disableGutters
+      <Box
         sx={{
-          width: "100%",
-          padding: { xs: "0 16px", sm: "0 24px" },
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          height: "100vh",
-          backgroundColor: "#f5f5f5",
+          padding: 2,
         }}
       >
-        <Alert severity="error">
-          You are not authorized to view this page.
-        </Alert>
         <Alert severity="error">Error loading order: {error.message}</Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <>
-      {data && data.length === 0 && (
-        <Container className={styles.errorContainer}>
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: 3,
+        boxSizing: "border-box",
+      }}
+    >
+      {data?.length === 0 ? (
+        <Container maxWidth="sm">
           <Alert severity="info">No orders found.</Alert>
         </Container>
+      ) : (
+        <Container maxWidth="md">
+          {data.map((order) => (
+            <Box
+              key={order._id}
+              sx={{
+                mb: 4,
+              }}
+            >
+              <OrderCard orderData={order} />
+            </Box>
+          ))}
+        </Container>
       )}
-      {data &&
-        data.length > 0 &&
-        data.map((order) => (
-          <Box
-            key={order._id}
-            sx={{
-              height: "100vh",
-              backgroundColor: "#ffff",
-            }}
-          >
-            <OrderCard orderData={order} />
-          </Box>
-        ))}
-    </>
+    </Box>
   );
 };
 

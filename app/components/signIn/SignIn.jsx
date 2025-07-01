@@ -42,11 +42,12 @@ const SignIn = ({ handleClose }) => {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log(data);
+      console.log("data Login", data);
       if (data.message === "Invalid email or password") {
         toast.error("Invalid email or password");
       } else {
         toast.success("Login successful!");
+        console.log("data Login", data);
         dispatch(
           loginUserRedux({
             username: data?.role,

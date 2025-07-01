@@ -1,4 +1,3 @@
-"use client";
 import React from "react";
 import {
   Box,
@@ -7,12 +6,10 @@ import {
   Divider,
   Grid,
   Chip,
-  Avatar,
   Card,
   CardMedia,
-  CardContent,
   List,
-  ListItem,
+  Button,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
@@ -21,7 +18,6 @@ import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PendingIcon from "@mui/icons-material/Pending";
 import styles from "./orderStyle.module.scss";
 
-// Helper function to format date
 const formatDate = (dateString) => {
   const options = {
     year: "numeric",
@@ -47,11 +43,11 @@ const OrderCard = ({ orderData }) => {
   return (
     <Box className={styles.container}>
       <Paper elevation={3} className={styles.orderCard}>
-        {/* Order Header */}
+        {/* Header */}
         <Box className={styles.header}>
           <Box className={styles.headerMain}>
             <Box className={styles.titleSection}>
-              <Typography variant="h5" component="h1" className={styles.title}>
+              <Typography variant="h5" className={styles.title}>
                 Order Details
               </Typography>
               <Chip
@@ -81,9 +77,9 @@ const OrderCard = ({ orderData }) => {
           </Box>
         </Box>
 
-        <Divider className={styles.divider} />
+        <Divider />
 
-        {/* Order Items */}
+        {/* Items */}
         <Box className={styles.itemsSection}>
           <Typography variant="h6" className={styles.sectionTitle}>
             Items
@@ -92,122 +88,124 @@ const OrderCard = ({ orderData }) => {
           <List className={styles.itemsList}>
             {items.map((item) => (
               <Card key={item._id} className={styles.itemCard}>
-                <Grid container spacing={2} className={styles.itemContent}>
-                  <Grid
-                    item
-                    xs={3}
-                    sm={2}
-                    className={styles.itemImageContainer}
-                  >
+                <Box className={styles.itemContentRow}>
+                  {/* Left Side: Image + Details */}
+                  <Box className={styles.itemLeft}>
                     <CardMedia
                       component="img"
-                      className={styles.itemImage}
                       image={item.menuItem.image}
                       alt={item.menuItem.name}
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                      }}
                     />
-                  </Grid>
-
-                  <Grid item xs={9} sm={10}>
-                    <Grid container>
-                      <Grid item xs={12} sm={8}>
-                        <Box className={styles.itemDetails}>
-                          <Typography
-                            variant="subtitle1"
-                            className={styles.itemName}
-                          >
-                            {item.menuItem.name}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={styles.itemDescription}
-                          >
-                            {item.menuItem.description}
-                          </Typography>
+                    <Box className={styles.itemDetails}>
+                      <Typography
+                        variant="subtitle1"
+                        className={styles.itemName}
+                      >
+                        {item.menuItem.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        className={styles.itemDescription}
+                      >
+                        {item.menuItem.description}
+                      </Typography>
+                      <Chip
+                        label={item.menuItem.category}
+                        size="small"
+                        className={styles.categoryChip}
+                      />
+                      <Box className={styles.servedStatus}>
+                        {item.orderServed ? (
                           <Chip
-                            label={item.menuItem.category}
+                            icon={<CheckCircleOutlineIcon fontSize="small" />}
+                            label="Served"
                             size="small"
-                            className={styles.categoryChip}
+                            color="success"
+                            variant="outlined"
                           />
-                          <Box className={styles.servedStatus}>
-                            {item.orderServed ? (
-                              <Chip
-                                icon={
-                                  <CheckCircleOutlineIcon fontSize="small" />
-                                }
-                                label="Served"
-                                size="small"
-                                color="success"
-                                variant="outlined"
-                              />
-                            ) : (
-                              <Chip
-                                icon={<PendingIcon fontSize="small" />}
-                                label="Preparing"
-                                size="small"
-                                color="warning"
-                                variant="outlined"
-                              />
-                            )}
-                          </Box>
-                        </Box>
-                      </Grid>
+                        ) : (
+                          <Chip
+                            icon={<PendingIcon fontSize="small" />}
+                            label="Preparing"
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
 
-                      <Grid item xs={12} sm={4}>
-                        <Box className={styles.priceSection}>
-                          <Box className={styles.quantityPrice}>
-                            <Typography variant="body2" color="text.secondary">
-                              Price: ₹{item.price}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Qty: {item.quantity}
-                            </Typography>
-                          </Box>
-                          <Typography
-                            variant="subtitle1"
-                            className={styles.subtotal}
-                          >
-                            ₹{item.price * item.quantity}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                  {/* Right Side: Quantity + Price */}
+                  <Box className={styles.itemRight}>
+                    <Typography variant="body2" color="text.secondary">
+                      Qty: {item.quantity}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Price: ₹{item.price}
+                    </Typography>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      className={styles.subtotal}
+                    >
+                      ₹{item.price * item.quantity}
+                    </Typography>
+                  </Box>
+                </Box>
               </Card>
             ))}
           </List>
         </Box>
 
-        {/* Order Summary */}
+        <Divider />
+
+        {/* Summary */}
         <Box className={styles.summary}>
-          <Divider className={styles.divider} />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography>Items:</Typography>
+            <Typography>
+              {items.reduce((total, item) => total + item.quantity, 0)}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 2,
+            }}
+          >
+            <Typography>Subtotal:</Typography>
+            <Typography>₹{total}</Typography>
+          </Box>
 
-          <Box className={styles.summaryContent}>
-            <Box className={styles.summaryRow}>
-              <Typography variant="body1">Items:</Typography>
-              <Typography variant="body1">
-                {items.reduce((total, item) => total + item.quantity, 0)}
-              </Typography>
-            </Box>
-
-            <Box className={styles.summaryRow}>
-              <Typography variant="body1">Subtotal:</Typography>
-              <Typography variant="body1">₹{total}</Typography>
-            </Box>
-
-            <Divider className={styles.summaryDivider} />
-
-            <Box className={styles.totalRow}>
-              <Typography variant="h6">Total:</Typography>
-              <Typography
-                variant="h6"
-                color="primary"
-                className={styles.totalAmount}
-              >
-                ₹{total}
-              </Typography>
-            </Box>
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "flex-end",
+              gap: 2,
+              mt: 2,
+            }}
+          >
+            <Button variant="contained" color="success">
+              Served
+            </Button>
+            <Button variant="outlined" color="primary">
+              Checkout
+            </Button>
           </Box>
         </Box>
       </Paper>

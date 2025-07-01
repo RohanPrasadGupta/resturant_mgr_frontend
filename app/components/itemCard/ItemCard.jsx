@@ -22,6 +22,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import styles from "./ItemCardStyle.module.scss";
 import classNames from "classnames";
 import { useSelector } from "react-redux";
+import { useMutation, useQuery } from "@tanstack/react-query";
 
 const ItemCard = ({ data }) => {
   const { name, description, price, category, image, available } = data;
@@ -39,7 +40,7 @@ const ItemCard = ({ data }) => {
 
     setLocalStorageData(storedData);
     setIsLoading(false);
-  }, [userData, localStorageData]);
+  }, []);
 
   // useEffect(() => {
   //   console.log(
@@ -49,6 +50,71 @@ const ItemCard = ({ data }) => {
   //     isLoading
   //   );
   // }, [userData, localStorageData, isLoading]);
+  const tableNumber = localStorageData?.tableNumber || userData?.tableNumber;
+  const username = localStorageData?.username || userData?.username;
+
+  const {
+    isLoading: isTableDataLoading,
+    data: tableInfo,
+    error,
+  } = useQuery({
+    queryKey: ["fetchTableData"],
+    queryFn: () =>
+      fetch(`https://resturant-mgr-backend.onrender.com/api/table/MR003`, {
+        method: "GET",
+        credentials: "include",
+      }).then((res) => {
+        if (!res.ok) {
+          throw new Error("Failed to fetch table data");
+        }
+        return res.json();
+      }),
+  });
+
+  const { mutate: handleAddOrder, isPending } = useMutation({
+    mutationFn: async ({
+      tableNumber,
+      tableId,
+      menuItemId,
+      quantity,
+      orderBy,
+    }) => {
+      const response = await fetch(
+        "https://resturant-mgr-backend.onrender.com/api/order",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            tableNumber,
+            tableId,
+            items: [
+              {
+                menuItem: menuItemId,
+                quantity,
+              },
+            ],
+            orderBy,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to add order");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      console.log("Order added successfully:", data);
+      setIsAddedToCart(true);
+    },
+    onError: () => {
+      toast.error("Error adding item.");
+    },
+  });
 
   const handleQuantityChange = (event) => {
     const value = parseInt(event.target.value, 10);
@@ -66,8 +132,19 @@ const ItemCard = ({ data }) => {
   };
 
   const handleAddToCart = () => {
-    setIsAddedToCart(true);
-    // You would integrate with your actual cart system here
+    if (!tableNumber || !tableInfo?._id || !data?._id || !username) {
+      console.warn("Missing required fields for order");
+      return;
+    }
+
+    handleAddOrder({
+      tableNumber,
+      tableId: tableInfo._id,
+      menuItemId: data._id,
+      quantity,
+      orderBy: username,
+    });
+
     console.log(`Added ${quantity} of ${name} to cart`);
   };
 
