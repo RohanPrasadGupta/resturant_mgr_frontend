@@ -25,7 +25,9 @@ const page = () => {
 
   const getOrder = async () => {
     const response = await axios.get(
-      "https://resturant-mgr-backend.onrender.com/api/orders",
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/orders`
+        : `${process.env.PROD_BACKEDN}/api/orders`,
       {
         withCredentials: true,
       }

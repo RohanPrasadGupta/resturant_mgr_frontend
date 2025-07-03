@@ -13,6 +13,13 @@ import UserAccess from "./details/UserAccess";
 import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
+import { io } from "socket.io-client";
+
+const socket = io(
+  process.env.NODE_ENV === "development"
+    ? `${process.env.LOCAL_BACKEND}`
+    : `${process.env.PROD_BACKEDN}`
+);
 
 const AdminBody = () => {
   const [selectedTab, setSelectedTab] = useState("visualize");
@@ -20,6 +27,23 @@ const AdminBody = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [navOpen, setNavOpen] = useState(!isMobile);
   const [contentInView, setContentInView] = useState(true);
+
+  useEffect(() => {
+    socket.emit("register-admin");
+
+    socket.on("new-order", (order) => {
+      toast.success(
+        `🆕 New order for Table ${order.tableNumber || "N/A"} received`
+      );
+
+      console.log("📦 New order received:", order);
+      // Optionally update state here to show on dashboard
+    });
+
+    return () => {
+      socket.off("new-order");
+    };
+  }, []);
 
   useEffect(() => {
     setNavOpen(!isMobile);
