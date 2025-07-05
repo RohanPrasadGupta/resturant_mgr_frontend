@@ -30,45 +30,58 @@ const ItemCard = ({ data }) => {
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const userData = useSelector((state) => state.selectedUser.value);
   const [localStorageData, setLocalStorageData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [username, setUsername] = useState("");
 
   useEffect(() => {
     const storedData =
       typeof window !== "undefined"
         ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
         : null;
-
     setLocalStorageData(storedData);
-    setIsLoading(false);
   }, []);
 
-  // useEffect(() => {
-  //   console.log(
-  //     "userData,localStorageData,isLoading",
-  //     userData,
-  //     localStorageData,
-  //     isLoading
-  //   );
-  // }, [userData, localStorageData, isLoading]);
-  const tableNumber = localStorageData?.tableNumber || userData?.tableNumber;
-  const username = localStorageData?.username || userData?.username;
+  const tableNumber =
+    userData?.tableNumber && userData?.tableNumber !== ""
+      ? userData.tableNumber
+      : localStorageData?.tableNumber;
+
+  useEffect(() => {
+    if (userData?.username && userData?.username !== "") {
+      setUsername(userData.username);
+    } else if (
+      localStorageData?.username &&
+      localStorageData?.username !== ""
+    ) {
+      setUsername(localStorageData.username);
+    } else {
+      setUsername("staff");
+    }
+  }, [userData, localStorageData]);
 
   const {
     isLoading: isTableDataLoading,
     data: tableInfo,
     error,
+    refetch,
   } = useQuery({
-    queryKey: ["fetchTableData"],
+    queryKey: ["fetchTableData", tableNumber],
     queryFn: () =>
-      fetch(`https://resturant-mgr-backend.onrender.com/api/table/MR003`, {
-        method: "GET",
-        credentials: "include",
-      }).then((res) => {
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/table/${tableNumber}`
+          : `${process.env.PROD_BACKEDN}/api/table/${tableNumber}`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
+      ).then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch table data");
         }
         return res.json();
       }),
+    enabled: !!tableNumber,
+    refetchOnWindowFocus: true,
   });
 
   const { mutate: handleAddOrder, isPending } = useMutation({
@@ -80,7 +93,9 @@ const ItemCard = ({ data }) => {
       orderBy,
     }) => {
       const response = await fetch(
-        "https://resturant-mgr-backend.onrender.com/api/order",
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order`
+          : `${process.env.PROD_BACKEDN}/api/order`,
         {
           method: "POST",
           headers: {
@@ -108,13 +123,19 @@ const ItemCard = ({ data }) => {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("Order added successfully:", data);
+      // console.log("Order added successfully:", data);
       setIsAddedToCart(true);
     },
     onError: () => {
       toast.error("Error adding item.");
     },
   });
+
+  // useEffect(() => {
+  //   console.log("tablenumber, username", tableNumber, username);
+  //   console.log("userData, localStorageData", userData, localStorageData);
+  //   console.log("tableInfo", tableInfo);
+  // }, [tableNumber, username, tableInfo]);
 
   const handleQuantityChange = (event) => {
     const value = parseInt(event.target.value, 10);
@@ -132,6 +153,13 @@ const ItemCard = ({ data }) => {
   };
 
   const handleAddToCart = () => {
+    // console.log(
+    //   "tableNumber,tableInfo._id,data._id,username",
+    //   tableNumber,
+    //   tableInfo?._id,
+    //   data._id,
+    //   username
+    // );
     if (!tableNumber || !tableInfo?._id || !data?._id || !username) {
       console.warn("Missing required fields for order");
       return;
@@ -144,15 +172,11 @@ const ItemCard = ({ data }) => {
       quantity,
       orderBy: username,
     });
-
-    console.log(`Added ${quantity} of ${name} to cart`);
   };
 
   const handleRemoveFromCart = () => {
     setIsAddedToCart(false);
     setQuantity(1);
-    // You would integrate with your actual cart system here
-    console.log(`Removed ${name} from cart`);
   };
 
   return (

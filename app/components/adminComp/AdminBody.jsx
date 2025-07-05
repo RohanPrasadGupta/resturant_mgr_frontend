@@ -13,6 +13,14 @@ import UserAccess from "./details/UserAccess";
 import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
+import { io } from "socket.io-client";
+import toast from "react-hot-toast";
+
+const socket = io(
+  process.env.NODE_ENV === "development"
+    ? `${process.env.LOCAL_BACKEND}`
+    : `${process.env.PROD_BACKEDN}`
+);
 
 const AdminBody = () => {
   const [selectedTab, setSelectedTab] = useState("visualize");
@@ -20,6 +28,27 @@ const AdminBody = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [navOpen, setNavOpen] = useState(!isMobile);
   const [contentInView, setContentInView] = useState(true);
+
+  useEffect(() => {
+    socket.emit("register-admin");
+
+    socket.on("new-order", (order) => {
+      toast.success(
+        ` New order for Table ${order.tableNumber || "N/A"} received`
+      );
+    });
+
+    socket.on("order-completed", (order) => {
+      toast.success(
+        ` Order for Table ${order.tableNumber || "N/A"} completed!`
+      );
+    });
+
+    return () => {
+      socket.off("new-order");
+      socket.off("order-completed");
+    };
+  }, []);
 
   useEffect(() => {
     setNavOpen(!isMobile);

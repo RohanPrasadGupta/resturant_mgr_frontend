@@ -36,7 +36,9 @@ const Homepage = () => {
 
   function fetchTodoList() {
     return fetch(
-      "https://resturant-mgr-backend.onrender.com/api/menu-items"
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/menu-items`
+        : `${process.env.PROD_BACKEDN}/api/menu-items`
     ).then((res) => res.json());
   }
 
