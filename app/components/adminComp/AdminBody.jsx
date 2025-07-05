@@ -14,6 +14,7 @@ import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { io } from "socket.io-client";
+import toast from "react-hot-toast";
 
 const socket = io(
   process.env.NODE_ENV === "development"
@@ -33,15 +34,19 @@ const AdminBody = () => {
 
     socket.on("new-order", (order) => {
       toast.success(
-        `🆕 New order for Table ${order.tableNumber || "N/A"} received`
+        ` New order for Table ${order.tableNumber || "N/A"} received`
       );
+    });
 
-      console.log("📦 New order received:", order);
-      // Optionally update state here to show on dashboard
+    socket.on("order-completed", (order) => {
+      toast.success(
+        ` Order for Table ${order.tableNumber || "N/A"} completed!`
+      );
     });
 
     return () => {
       socket.off("new-order");
+      socket.off("order-completed");
     };
   }, []);
 

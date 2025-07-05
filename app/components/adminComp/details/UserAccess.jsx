@@ -92,16 +92,20 @@ const UserAccess = () => {
   } = useQuery({
     queryKey: ["getAllUsers"],
     queryFn: () =>
-      fetch(`https://resturant-mgr-backend.onrender.com/api/users`).then(
-        (res) => res.json()
-      ),
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users`
+          : `${process.env.PROD_BACKEDN}/api/users`
+      ).then((res) => res.json()),
   });
 
   // Toggle user status mutation
   const toggleStatusMutation = useMutation({
     mutationFn: async (userId) => {
       const response = await fetch(
-        `https://resturant-mgr-backend.onrender.com/api/users/status/${userId}`,
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/status/${userId}`
+          : `${process.env.PROD_BACKEDN}/api/users/status/${userId}`,
         {
           method: "PUT",
           headers: {
@@ -127,7 +131,9 @@ const UserAccess = () => {
   const deleteUserMutation = useMutation({
     mutationFn: async (userId) => {
       const response = await fetch(
-        `https://resturant-mgr-backend.onrender.com/api/users/${userId}`,
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/${userId}`
+          : `${process.env.PROD_BACKEDN}/api/users/${userId}`,
         {
           method: "DELETE",
         }
@@ -154,7 +160,9 @@ const UserAccess = () => {
   const editUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
       const response = await fetch(
-        `https://resturant-mgr-backend.onrender.com/api/users/${userId}`,
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/${userId}`
+          : `${process.env.PROD_BACKEDN}/api/users/${userId}`,
         {
           method: "PUT",
           headers: {

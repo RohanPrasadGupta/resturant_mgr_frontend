@@ -34,12 +34,18 @@ import SumChartDetails from "./charts/SumChartDetails";
 import BarChartDetails from "./charts/BarChartDetails";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import LoaderComp from "../../LoaderComp/LoadingComp";
+import { io } from "socket.io-client";
+
+const socket = io(
+  process.env.NODE_ENV === "development"
+    ? `${process.env.LOCAL_BACKEND}`
+    : `${process.env.PROD_BACKEDN}`
+);
 
 const DataVisualize = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
-
   const [timeRange, setTimeRange] = useState("overall");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [animate, setAnimate] = useState(false);
@@ -49,11 +55,14 @@ const DataVisualize = () => {
     isError,
     data: ordersData,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["getAdminData"],
     queryFn: async () => {
       const response = await fetch(
-        `https://resturant-mgr-backend.onrender.com/api/admin/all-confirm-orders`
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
+          : `${process.env.PROD_BACKEDN}/api/admin/all-confirm-orders`
       );
       const data = await response.json();
 
@@ -67,10 +76,20 @@ const DataVisualize = () => {
       }
     },
     retry: 1,
-    staleTime: 30000,
+    staleTime: 30000, // 30 seconds
   });
   useEffect(() => {
     setAnimate(true);
+  }, []);
+
+  useEffect(() => {
+    socket.on("order-completed", (order) => {
+      refetch();
+    });
+
+    return () => {
+      socket.off("order-completed");
+    };
   }, []);
 
   const handleTimeRangeChange = (event, newTimeRange) => {

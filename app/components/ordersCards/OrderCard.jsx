@@ -1,22 +1,29 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
   Typography,
   Divider,
-  Grid,
   Chip,
   Card,
   CardMedia,
   List,
   Button,
+  IconButton,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PendingIcon from "@mui/icons-material/Pending";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CancelIcon from "@mui/icons-material/Cancel";
 import styles from "./orderStyle.module.scss";
+import toast from "react-hot-toast";
 
 const formatDate = (dateString) => {
   const options = {
@@ -29,7 +36,18 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-US", options);
 };
 
-const OrderCard = ({ orderData }) => {
+const OrderCard = ({
+  orderData,
+  onDeleteItem,
+  isDeleting,
+  tableOrdersID,
+  setOrdersID,
+  handleDeleteAllTableOrder,
+  handleServedTableOrder,
+  handleCheckOutTableOrder,
+}) => {
+  const [paymentType, setPaymentType] = useState("");
+
   if (!orderData) {
     return (
       <Box className={styles.noOrderContainer}>
@@ -39,6 +57,42 @@ const OrderCard = ({ orderData }) => {
   }
 
   const { tableNumber, items, total, createdAt, orderBy } = orderData;
+
+  const handleDeleteItem = (itemId) => {
+    if (!itemId) {
+      toast.error("Error deleting item");
+    }
+    if (onDeleteItem && !isDeleting) {
+      setOrdersID(tableOrdersID);
+      onDeleteItem(itemId);
+    }
+  };
+
+  const handleCancelTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error deleting order");
+    }
+    handleDeleteAllTableOrder(orderData?._id);
+  };
+  const handleServedTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error marking served order");
+    }
+    handleServedTableOrder(orderData?._id);
+  };
+  const handleCheckoutTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error checking out order");
+    }
+    if (!paymentType) {
+      toast.error("Please select a payment type.");
+      return;
+    }
+
+    handleCheckOutTableOrder({ tableId: orderData?._id, paymentType });
+  };
+
+  const itemAllServed = items.every((item) => item.orderServed);
 
   return (
     <Box className={styles.container}>
@@ -53,23 +107,40 @@ const OrderCard = ({ orderData }) => {
               <Chip
                 icon={<TableRestaurantIcon fontSize="small" />}
                 label={`Table ${tableNumber}`}
-                className={styles.tableChip}
+                sx={{
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  color: "white",
+                  fontWeight: "bold",
+                }}
               />
             </Box>
             <Chip
               label="ACTIVE"
-              color="warning"
-              className={styles.statusChip}
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                color: "white",
+                fontWeight: "bold",
+              }}
             />
           </Box>
 
           <Box className={styles.orderMeta}>
             <Box className={styles.metaItem}>
-              <AccessTimeIcon className={styles.metaIcon} />
+              <AccessTimeIcon
+                sx={{
+                  color: "#ff5722",
+                }}
+                className={styles.metaIcon}
+              />
               <Typography variant="body2">{formatDate(createdAt)}</Typography>
             </Box>
             <Box className={styles.metaItem}>
-              <PersonIcon className={styles.metaIcon} />
+              <PersonIcon
+                sx={{
+                  color: "#ff5722",
+                }}
+                className={styles.metaIcon}
+              />
               <Typography variant="body2">
                 Ordered by: {orderBy === "staff" ? "Staff" : "Customer"}
               </Typography>
@@ -81,7 +152,16 @@ const OrderCard = ({ orderData }) => {
 
         {/* Items */}
         <Box className={styles.itemsSection}>
-          <Typography variant="h6" className={styles.sectionTitle}>
+          <Typography
+            variant="h6"
+            className={styles.sectionTitle}
+            sx={{
+              background: "linear-gradient(90deg, #ff5722, #ff9800)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontWeight: "bold",
+            }}
+          >
             Items
           </Typography>
 
@@ -100,6 +180,7 @@ const OrderCard = ({ orderData }) => {
                         height: 64,
                         objectFit: "cover",
                         borderRadius: "8px",
+                        border: "2px solid #ff5722",
                       }}
                     />
                     <Box className={styles.itemDetails}>
@@ -118,7 +199,13 @@ const OrderCard = ({ orderData }) => {
                       <Chip
                         label={item.menuItem.category}
                         size="small"
-                        className={styles.categoryChip}
+                        sx={{
+                          background:
+                            "linear-gradient(90deg, #ff5722, #ff9800)",
+                          color: "white",
+                          fontSize: "0.75rem",
+                          width: "fit-content",
+                        }}
                       />
                       <Box className={styles.servedStatus}>
                         {item.orderServed ? (
@@ -142,7 +229,7 @@ const OrderCard = ({ orderData }) => {
                     </Box>
                   </Box>
 
-                  {/* Right Side: Quantity + Price */}
+                  {/* Right Side: Quantity + Price + Delete */}
                   <Box className={styles.itemRight}>
                     <Typography variant="body2" color="text.secondary">
                       Qty: {item.quantity}
@@ -154,9 +241,28 @@ const OrderCard = ({ orderData }) => {
                       variant="subtitle1"
                       fontWeight="bold"
                       className={styles.subtotal}
+                      sx={{
+                        background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
                     >
                       ₹{item.price * item.quantity}
                     </Typography>
+                    <IconButton
+                      onClick={() => handleDeleteItem(item.menuItem._id)}
+                      color="error"
+                      size="small"
+                      disabled={isDeleting || item?.orderServed}
+                      sx={{
+                        mt: 1,
+                        "&:hover": {
+                          background: "rgba(255, 87, 34, 0.1)",
+                        },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
                   </Box>
                 </Box>
               </Card>
@@ -188,24 +294,136 @@ const OrderCard = ({ orderData }) => {
             }}
           >
             <Typography>Subtotal:</Typography>
-            <Typography>₹{total}</Typography>
+            <Typography
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+              }}
+            >
+              ₹{total}
+            </Typography>
           </Box>
 
           {/* Action Buttons */}
           <Box
             sx={{
               display: "flex",
-              justifyContent: "flex-end",
+              justifyContent: "space-between",
               gap: 2,
               mt: 2,
+              alignItems: "center",
             }}
           >
-            <Button variant="contained" color="success">
-              Served
+            {/* Left side - Cancel Table button */}
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<CancelIcon />}
+              disabled={itemAllServed}
+              onClick={handleCancelTable}
+              sx={{
+                borderColor: "#ff5722",
+                color: "#ff5722",
+                background: "transparent",
+                "&:hover": {
+                  borderColor: "#ff5722",
+                  backgroundColor: "rgba(255, 87, 34, 0.1)",
+                },
+                "&.Mui-disabled": {
+                  borderColor: "#ffccbc",
+                  color: "#ffccbc",
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  opacity: 0.5,
+                  cursor: "not-allowed",
+                },
+              }}
+            >
+              Cancel Table
             </Button>
-            <Button variant="outlined" color="primary">
-              Checkout
-            </Button>
+
+            {/* Right side - Served, Payment Type, and Checkout buttons */}
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <Button
+                variant="contained"
+                color="success"
+                disabled={itemAllServed}
+                onClick={handleServedTable}
+                sx={{
+                  background: "linear-gradient(90deg, #4caf50, #8bc34a)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #45a049, #7cb342)",
+                  },
+                  "&.Mui-disabled": {
+                    background: "linear-gradient(90deg, #c8e6c9, #e8f5e9)",
+                    color: "#a5a5a5",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                  },
+                }}
+              >
+                Served
+              </Button>
+              {/* Payment Type Radio Buttons */}
+              <FormControl sx={{ ml: 2 }}>
+                <RadioGroup
+                  row
+                  value={paymentType}
+                  onChange={(e) => setPaymentType(e.target.value)}
+                  name="payment-type"
+                >
+                  <FormControlLabel
+                    value="online"
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#ff9800",
+                          "&.Mui-checked": {
+                            color: "#ff5722",
+                          },
+                        }}
+                      />
+                    }
+                    label="Online"
+                  />
+                  <FormControlLabel
+                    value="cash"
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#ff9800",
+                          "&.Mui-checked": {
+                            color: "#ff5722",
+                          },
+                        }}
+                      />
+                    }
+                    label="Cash"
+                  />
+                </RadioGroup>
+              </FormControl>
+              <Button
+                variant="contained"
+                onClick={handleCheckoutTable}
+                disabled={!itemAllServed || !paymentType}
+                sx={{
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #e64a19, #f57c00)",
+                  },
+                  "&.Mui-disabled": {
+                    background: "linear-gradient(90deg, #ffccbc, #ffe0b2)",
+                    color: "#a5a5a5",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                  },
+                }}
+              >
+                Checkout
+              </Button>
+            </Box>
           </Box>
         </Box>
       </Paper>
