@@ -1,36 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Restaurant Manager
 
-## Getting Started
+A full-stack restaurant management system with real-time order handling, role-based access, and responsive design. Built using **Next.js** for the frontend and **Node.js/Express** for the backend, with **MongoDB** for data storage and **Socket.IO** for live notifications.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Role-Based Access**  
+  - **Admin**: Full dashboard access, business analytics, menu management, user management, and real-time monitoring of all orders and financial flows.
+  - **Staff**: Place and manage orders, mark items as served, and handle table operations.
+  - **Customer**: Place orders, view order status, and interact with the menu.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+- **Real-Time Updates**  
+  - Instant notifications for new orders and order completions using Socket.IO.
+  - Live dashboard updates for admins and staff.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Secure Authentication**  
+  - Passwords are securely stored and managed with JWT-based authentication.
 
-## Learn More
+- **Responsive UI**  
+  - Fully responsive design for mobile, tablet, and desktop.
+  - Built with Material UI and custom SCSS modules.
 
-To learn more about Next.js, take a look at the following resources:
+- **Data Visualization**  
+  - Admin dashboard includes business analytics, order flow, and payment channel breakdowns.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Menu Management**  
+  - Add, edit, filter, and search menu items.
+  - Availability toggling for each menu item.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Tech Stack
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Frontend**: Next.js, React, Material UI, SCSS Modules, React Query, Socket.IO Client
+- **Backend**: Node.js, Express, MongoDB, Mongoose, Socket.IO, JWT
+- **Database**: MongoDB Atlas
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+## Some Previews
+----
+
+![image](https://github.com/user-attachments/assets/61d6e1e9-313f-4d49-875d-5c46a81d301f)
+![image](https://github.com/user-attachments/assets/21971bea-11aa-425e-81ea-aff48c2064da)
+![image](https://github.com/user-attachments/assets/beb7736e-9065-4ee3-a253-79e616f3ec07)
+![image](https://github.com/user-attachments/assets/f9ba3d56-c965-4d08-a294-138481b85073)
+![image](https://github.com/user-attachments/assets/aa62a235-a4e0-4465-b350-dc2650c2143d)
