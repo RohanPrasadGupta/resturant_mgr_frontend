@@ -117,7 +117,6 @@ const AdminBody = () => {
           position: "relative",
         }}
       >
-        {/* Navigation Sidebar */}
         {isMobile ? (
           <Drawer
             variant="temporary"

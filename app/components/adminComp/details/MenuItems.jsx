@@ -209,47 +209,145 @@ const MenuItems = () => {
         </Alert>
       ) : (
         <Box className={styles.contentSection}>
-          {/* Stats Section */}
-          <Paper className={styles.statsSection} elevation={3}>
+          <Paper
+            className={styles.statsSection}
+            elevation={3}
+            sx={{
+              background: "linear-gradient(90deg, #ff5722 0%, #ff9800 100%)",
+              color: "#fff",
+              boxShadow: "0 4px 24px 0 rgba(255, 87, 34, 0.08)",
+              borderRadius: "18px",
+              mb: 4,
+              p: { xs: 2, sm: 3 },
+            }}
+          >
             <Box className={styles.statsHeader}>
-              <Typography variant="h5" className={styles.statsMainTitle}>
+              <Typography
+                variant="h3"
+                className={styles.statsMainTitle}
+                sx={{
+                  fontWeight: 800,
+                  letterSpacing: 1,
+                  color: "#fff",
+                  fontSize: { xs: "2rem", sm: "2.8rem", md: "3.2rem" },
+                  mb: 1,
+                  lineHeight: 1.1,
+                  textShadow: "0 2px 8px rgba(255, 87, 34, 0.18)",
+                }}
+              >
                 Menu Overview
-              </Typography>
-              <Typography variant="body2" className={styles.statsSubtitle}>
-                Complete statistics of your restaurant menu
               </Typography>
             </Box>
 
-            <Box className={styles.statsGrid}>
-              <Box className={styles.statCard}>
+            <Box
+              className={styles.statsGrid}
+              sx={{
+                display: "flex",
+                gap: { xs: 2, sm: 4 },
+                justifyContent: "center",
+                alignItems: "center",
+                flexWrap: "wrap",
+                mt: 1,
+              }}
+            >
+              <Box
+                className={styles.statCard}
+                sx={{
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: "14px",
+                  minWidth: 120,
+                  px: 3,
+                  py: 2,
+                  textAlign: "center",
+                  boxShadow: "0 2px 8px 0 rgba(255, 152, 0, 0.08)",
+                }}
+              >
                 <Box className={styles.statContent}>
-                  <Typography variant="h4" className={styles.statNumber}>
+                  <Typography
+                    variant="h4"
+                    className={styles.statNumber}
+                    sx={{
+                      fontWeight: 700,
+                      color: "#fff",
+                      textShadow: "0 2px 8px rgba(255, 87, 34, 0.15)",
+                    }}
+                  >
                     {allMenuItems?.length || 0}
                   </Typography>
-                  <Typography variant="body1" className={styles.statLabel}>
+                  <Typography
+                    variant="body1"
+                    className={styles.statLabel}
+                    sx={{ color: "#ffe0b2", fontWeight: 500 }}
+                  >
                     Total Items
                   </Typography>
                 </Box>
               </Box>
 
-              <Box className={styles.statCard}>
+              <Box
+                className={styles.statCard}
+                sx={{
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: "14px",
+                  minWidth: 120,
+                  px: 3,
+                  py: 2,
+                  textAlign: "center",
+                  boxShadow: "0 2px 8px 0 rgba(76, 175, 80, 0.08)",
+                }}
+              >
                 <Box className={styles.statContent}>
-                  <Typography variant="h4" className={styles.statNumber}>
+                  <Typography
+                    variant="h4"
+                    className={styles.statNumber}
+                    sx={{
+                      fontWeight: 700,
+                      color: "#fffde7",
+                      textShadow: "0 2px 8px rgba(76, 175, 80, 0.12)",
+                    }}
+                  >
                     {allMenuItems?.filter((item) => item.available).length || 0}
                   </Typography>
-                  <Typography variant="body1" className={styles.statLabel}>
+                  <Typography
+                    variant="body1"
+                    className={styles.statLabel}
+                    sx={{ color: "#c8e6c9", fontWeight: 500 }}
+                  >
                     Available
                   </Typography>
                 </Box>
               </Box>
 
-              <Box className={styles.statCard}>
+              <Box
+                className={styles.statCard}
+                sx={{
+                  background: "rgba(255,255,255,0.08)",
+                  borderRadius: "14px",
+                  minWidth: 120,
+                  px: 3,
+                  py: 2,
+                  textAlign: "center",
+                  boxShadow: "0 2px 8px 0 rgba(244, 67, 54, 0.08)",
+                }}
+              >
                 <Box className={styles.statContent}>
-                  <Typography variant="h4" className={styles.statNumber}>
+                  <Typography
+                    variant="h4"
+                    className={styles.statNumber}
+                    sx={{
+                      fontWeight: 700,
+                      color: "#fff",
+                      textShadow: "0 2px 8px rgba(244, 67, 54, 0.12)",
+                    }}
+                  >
                     {allMenuItems?.filter((item) => !item.available).length ||
                       0}
                   </Typography>
-                  <Typography variant="body1" className={styles.statLabel}>
+                  <Typography
+                    variant="body1"
+                    className={styles.statLabel}
+                    sx={{ color: "#ffcdd2", fontWeight: 500 }}
+                  >
                     Unavailable
                   </Typography>
                 </Box>
@@ -257,7 +355,6 @@ const MenuItems = () => {
             </Box>
           </Paper>
 
-          {/* Filters Section */}
           <Paper className={styles.filtersSection} elevation={1}>
             <Box className={styles.filtersHeader}>
               <Box className={styles.filtersTitle}>
@@ -275,7 +372,6 @@ const MenuItems = () => {
             </Box>
 
             <Grid container spacing={2} className={styles.filtersGrid}>
-              {/* Search Filter */}
               <Grid item xs={12} md={4}>
                 <TextField
                   fullWidth
@@ -295,7 +391,6 @@ const MenuItems = () => {
                 />
               </Grid>
 
-              {/* Category Filter */}
               <Grid item xs={12} md={3}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Category</InputLabel>
@@ -316,7 +411,6 @@ const MenuItems = () => {
                 </FormControl>
               </Grid>
 
-              {/* Availability Filter */}
               <Grid item xs={12} md={3}>
                 <FormControl fullWidth size="small">
                   <InputLabel>Availability</InputLabel>
@@ -333,7 +427,6 @@ const MenuItems = () => {
                 </FormControl>
               </Grid>
 
-              {/* Clear Filters */}
               <Grid item xs={12} md={2}>
                 <Button
                   fullWidth
@@ -350,7 +443,6 @@ const MenuItems = () => {
               </Grid>
             </Grid>
 
-            {/* Active Filters Display */}
             {(searchTerm || categoryFilter || availabilityFilter) && (
               <Box className={styles.activeFilters}>
                 <Typography
@@ -396,7 +488,6 @@ const MenuItems = () => {
             )}
           </Paper>
 
-          {/* Results Info */}
           <Box className={styles.resultsInfo}>
             <Typography variant="body1" className={styles.resultsText}>
               Showing {filteredMenuItems?.length || 0} of{" "}
@@ -404,7 +495,6 @@ const MenuItems = () => {
             </Typography>
           </Box>
 
-          {/* Menu Items Grid */}
           <Grid container spacing={3} className={styles.menuGrid}>
             {filteredMenuItems?.map((item) => (
               <Grid item xs={12} sm={6} md={4} lg={3} key={item._id}>
@@ -416,7 +506,6 @@ const MenuItems = () => {
             ))}
           </Grid>
 
-          {/* Empty States */}
           {filteredMenuItems?.length === 0 && allMenuItems?.length > 0 && (
             <Paper className={styles.emptyState} elevation={1}>
               <Typography variant="h6" className={styles.emptyTitle}>
@@ -457,7 +546,6 @@ const MenuItems = () => {
         </Box>
       )}
 
-      {/* Add New Menu Item Modal */}
       <Modal
         open={isAddModalOpen}
         onClose={handleCloseAddModal}
@@ -480,7 +568,6 @@ const MenuItems = () => {
 
           <Box className={styles.modalContent}>
             <Box className={styles.formContainer}>
-              {/* Menu Item Name */}
               <Box className={styles.fieldGroup}>
                 <TextField
                   fullWidth
@@ -493,7 +580,6 @@ const MenuItems = () => {
                 />
               </Box>
 
-              {/* Category */}
               <Box className={styles.fieldGroup}>
                 <FormControl fullWidth>
                   <InputLabel>Category *</InputLabel>
@@ -515,7 +601,6 @@ const MenuItems = () => {
                 </FormControl>
               </Box>
 
-              {/* Price */}
               <Box className={styles.fieldGroup}>
                 <TextField
                   fullWidth
@@ -534,7 +619,6 @@ const MenuItems = () => {
                 />
               </Box>
 
-              {/* Image URL */}
               <Box className={styles.fieldGroup}>
                 <TextField
                   fullWidth
@@ -547,7 +631,6 @@ const MenuItems = () => {
                 />
               </Box>
 
-              {/* Description */}
               <Box className={styles.fieldGroup}>
                 <TextField
                   fullWidth
@@ -564,7 +647,6 @@ const MenuItems = () => {
                 />
               </Box>
 
-              {/* Availability Switch */}
               <Box className={styles.fieldGroup}>
                 <Box className={styles.availabilityContainer}>
                   <Typography
