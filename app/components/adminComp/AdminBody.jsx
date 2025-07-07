@@ -10,6 +10,7 @@ import {
 import React, { useState, useEffect } from "react";
 import DataVisualize from "./details/DataVisualize";
 import UserAccess from "./details/UserAccess";
+import MenuItems from "./details/MenuItems";
 import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -233,6 +234,7 @@ const AdminBody = () => {
             <Box>
               {selectedTab === "visualize" && <DataVisualize />}
               {selectedTab === "userSettings" && <UserAccess />}
+              {selectedTab === "menuItems" && <MenuItems />}
             </Box>
           </Fade>
         </Box>

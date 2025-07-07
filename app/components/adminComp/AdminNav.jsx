@@ -45,10 +45,10 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
       icon: <Settings />,
     },
     {
-      id: "orders",
-      label: "Orders",
+      id: "menuItems",
+      label: "Menu Items",
       icon: <Restaurant />,
-      disabled: true,
+      // disabled: true,
     },
     {
       id: "customers",
