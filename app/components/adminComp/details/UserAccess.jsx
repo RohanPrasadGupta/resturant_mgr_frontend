@@ -41,6 +41,7 @@ import {
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import CreateUser from "../details/adminComponent/CreateUser";
 import LoaderComp from "../../LoaderComp/LoadingComp";
+import toast from "react-hot-toast";
 
 const UserAccess = () => {
   const theme = useTheme();
@@ -55,11 +56,6 @@ const UserAccess = () => {
     email: "",
     password: "",
     role: "user",
-  });
-  const [snackbar, setSnackbar] = useState({
-    open: false,
-    message: "",
-    severity: "success",
   });
 
   const handleOpen = () => setOpen(true);
@@ -78,10 +74,6 @@ const UserAccess = () => {
     } catch (error) {
       return dateString;
     }
-  };
-
-  const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
   };
 
   // Fetch users query
@@ -120,10 +112,10 @@ const UserAccess = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllUsers"]);
-      showSnackbar("User status updated successfully!");
+      toast.success("User status updated successfully!");
     },
     onError: (error) => {
-      showSnackbar(`Error: ${error.message}`, "error");
+      toast.error(`Error: ${error.message}`, "error");
     },
   });
 
@@ -145,12 +137,12 @@ const UserAccess = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllUsers"]);
-      showSnackbar("User deleted successfully!");
+      toast.success("User deleted successfully!");
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     },
     onError: (error) => {
-      showSnackbar(`Error: ${error.message}`, "error");
+      toast.error(`Error: ${error.message}`, "error");
       setDeleteDialogOpen(false);
       setUserToDelete(null);
     },
@@ -178,13 +170,13 @@ const UserAccess = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["getAllUsers"]);
-      showSnackbar("User updated successfully!");
+      toast.success("User updated successfully!");
       setEditDialogOpen(false);
       setSelectedUser(null);
       setEditForm({ name: "", email: "", password: "", role: "user" });
     },
     onError: (error) => {
-      showSnackbar(`Error: ${error.message}`, "error");
+      toast.error(`Error: ${error.message}`, "error");
     },
   });
 
@@ -227,7 +219,7 @@ const UserAccess = () => {
   // Handle edit form submission
   const handleEditSubmit = () => {
     if (!editForm.name || !editForm.email) {
-      showSnackbar("Name and email are required!", "error");
+      toast.error("Name and email are required!", "error");
       return;
     }
 
@@ -831,22 +823,6 @@ const UserAccess = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          sx={{ width: "100%" }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
 
       <CreateUser open={open} handleClose={handleClose} />
     </>

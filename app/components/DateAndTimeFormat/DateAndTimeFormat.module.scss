@@ -1,0 +1,56 @@
+.dateTimeContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+
+.dateTime {
+  color: #555;
+  font-weight: 500;
+  font-size: 0.875rem;
+
+  &:hover {
+    color: #ff5722;
+    transition: color 0.2s ease;
+  }
+}
+
+.primaryDate {
+  color: #333;
+  font-weight: 600;
+  font-size: 0.875rem;
+  line-height: 1.2;
+}
+
+.relativeChip {
+  background: linear-gradient(90deg, #ff5722, #ff9800);
+  color: white;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 500;
+
+  .MuiChip-label {
+    padding: 4px 8px;
+  }
+
+  &:hover {
+    background: linear-gradient(90deg, #e64a19, #f57c00);
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .dateTime,
+  .primaryDate {
+    font-size: 0.8rem;
+  }
+
+  .relativeChip {
+    font-size: 0.7rem;
+
+    .MuiChip-label {
+      padding: 2px 6px;
+    }
+  }
+}
