@@ -49,16 +49,10 @@ const SignIn = ({ handleClose }) => {
         toast.error("Invalid email or password");
       } else {
         toast.success("Login successful!");
-        console.log("data Login", data);
+        // console.log("data Login", data);
+
         dispatch(
           loginUserRedux({
-            username: data?.role,
-            tableNumber: data?.tableId || "",
-          })
-        );
-        localStorage.setItem(
-          "mgrUserData",
-          JSON.stringify({
             username: data?.role,
             tableNumber: data?.tableId || "",
           })
