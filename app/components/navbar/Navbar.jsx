@@ -45,13 +45,12 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import SignIn from "../signIn/SignIn";
 import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
+import { useMutation } from "@tanstack/react-query";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signInClicked, setSignInClicked] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const [localStorageData, setLocalStorageData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
@@ -59,29 +58,50 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
 
-  const isCustomer =
-    localStorageData?.username === "customer" ||
-    userData?.username === "customer";
+  const isCustomer = userData?.username === "customer";
 
   const isStaff =
-    localStorageData?.username === "staff" || userData?.username === "staff";
+    userData?.username === "staff" || userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
   const {
-    isPending,
+    isLoading,
     isError,
     data: tables,
     error,
   } = useQuery({
     queryKey: ["getTables"],
     queryFn: () =>
-      fetch("https://resturant-mgr-backend.onrender.com/api/tables").then(
-        (res) => res.json()
-      ),
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/tables`
+          : `${process.env.PROD_BACKEDN}/api/tables`
+      ).then((res) => res.json()),
   });
 
-  // Get table from URL parameters or localStorage
+  const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
+    mutationFn: () =>
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/logout`
+          : `${process.env.PROD_BACKEDN}/api/users/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      ).then((res) => res.json()),
+    onSuccess: () => {
+      dispatch(logoutUserRedux());
+      setLogoutDialogOpen(false);
+      toast.success("Successfully logged out");
+      // window.location.reload();
+    },
+    onError: () => {
+      toast.error("Logout failed.");
+    },
+  });
+
   useEffect(() => {
     const tableNumber = searchParams.get("tableNumber");
     const username = searchParams.get("username");
@@ -89,24 +109,8 @@ const Navbar = () => {
       dispatch(
         loginUserRedux({ username: username, tableNumber: tableNumber })
       );
-      localStorage.setItem(
-        "mgrUserData",
-        JSON.stringify({ username, tableNumber })
-      );
     }
-  }, [searchParams]);
-
-  // Move localStorage access to useEffect
-  useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
-    const storedData =
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
-        : null;
-
-    setLocalStorageData(storedData);
-    setIsLoading(false);
-  }, []);
+  }, [searchParams, dispatch]);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -114,13 +118,6 @@ const Navbar = () => {
 
   const handleTableChange = (event) => {
     dispatch(updateTableNumberRedux(event.target.value));
-    localStorage.setItem(
-      "mgrUserData",
-      JSON.stringify({
-        username: userData.username,
-        tableNumber: event.target.value,
-      })
-    );
   };
 
   const handleClose = () => {
@@ -136,10 +133,7 @@ const Navbar = () => {
   };
 
   const handleConfirmLogout = () => {
-    localStorage.removeItem("mgrUserData");
-    dispatch(logoutUserRedux());
-    setLogoutDialogOpen(false);
-    toast.success("Successfully logged out");
+    logoutUser();
   };
 
   const navItems = [
@@ -196,7 +190,7 @@ const Navbar = () => {
                     startAdornment={
                       <TableRestaurantIcon className={styles.tableIcon} />
                     }
-                    disabled={isPending}
+                    disabled={isLoading}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -214,7 +208,7 @@ const Navbar = () => {
                       ))}
                   </Select>
                 </FormControl>
-                {isPending && (
+                {isLoading && (
                   <CircularProgress
                     size={20}
                     className={styles.tableSelectLoader}
@@ -254,14 +248,10 @@ const Navbar = () => {
           {!isMobile && (
             <Box className={styles.tableSelectWrapper}>
               {isCustomer ? (
-                // For customers, just show their table number without the dropdown
                 <Box className={styles.customerTableDisplay}>
                   <TableRestaurantIcon className={styles.tableIcon} />
                   <Typography variant="body2">
-                    Table:{" "}
-                    {userData.tableNumber === ""
-                      ? localStorageData.tableNumber
-                      : userData.tableNumber}
+                    Table: {userData.tableNumber || "Not selected"}
                   </Typography>
                 </Box>
               ) : (
@@ -288,7 +278,7 @@ const Navbar = () => {
                         startAdornment={
                           <TableRestaurantIcon className={styles.tableIcon} />
                         }
-                        disabled={isPending}
+                        disabled={isLoading}
                       >
                         <MenuItem value="">
                           <em>Select Table</em>
@@ -307,13 +297,12 @@ const Navbar = () => {
                 </>
               )}
 
-              {isPending ||
-                (isLoading && (
-                  <CircularProgress
-                    size={20}
-                    className={styles.tableSelectLoader}
-                  />
-                ))}
+              {isLoading && (
+                <CircularProgress
+                  size={20}
+                  className={styles.tableSelectLoader}
+                />
+              )}
             </Box>
           )}
 

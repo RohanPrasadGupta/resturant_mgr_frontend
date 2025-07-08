@@ -16,11 +16,7 @@ import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import styles from "./signIn.module.scss";
 import { useMutation } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import {
-  loginUserRedux,
-  logoutUserRedux,
-  updateTableNumberRedux,
-} from "../../redux/storeSlice/loginUserSlice";
+import { loginUserRedux } from "../../redux/storeSlice/loginUserSlice";
 import { useDispatch } from "react-redux";
 
 const SignIn = ({ handleClose }) => {
@@ -29,44 +25,42 @@ const SignIn = ({ handleClose }) => {
   const [showPassword, setShowPassword] = useState(false);
   const dispatch = useDispatch();
 
-  // ...existing code...
-
   const { mutate, isPending } = useMutation({
     mutationFn: async () => {
-      const formData = { email, password };
       const response = await fetch(
-        "https://resturant-mgr-backend.onrender.com/api/users/login",
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/login`
+          : `${process.env.PROD_BACKEDN}/api/users/login`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(formData),
+          credentials: "include",
+          body: JSON.stringify({ email, password }),
         }
       );
 
       return response.json();
     },
     onSuccess: (data) => {
-      console.log(data);
+      console.log("data Login", data);
       if (data.message === "Invalid email or password") {
         toast.error("Invalid email or password");
       } else {
         toast.success("Login successful!");
+        // console.log("data Login", data);
+
         dispatch(
           loginUserRedux({
             username: data?.role,
             tableNumber: data?.tableId || "",
           })
         );
-        localStorage.setItem(
-          "mgrUserData",
-          JSON.stringify({
-            username: data?.role,
-            tableNumber: data?.tableId || "",
-          })
-        );
+
         handleClose();
+        // relode when successful login
+        // window.location.reload();
       }
     },
     onError: () => {

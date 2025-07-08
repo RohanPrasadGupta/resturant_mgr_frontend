@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
-import ItemCard from "@/app/components/itemCard/ItemCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import ItemCard from "../../components/itemCard/ItemCard";
 import {
   Box,
   Container,
@@ -36,7 +36,9 @@ const Homepage = () => {
 
   function fetchTodoList() {
     return fetch(
-      "https://resturant-mgr-backend.onrender.com/api/menu-items"
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/menu-items`
+        : `${process.env.PROD_BACKEDN}/api/menu-items`
     ).then((res) => res.json());
   }
 

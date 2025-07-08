@@ -1,10 +1,10 @@
 import React from "react";
-import Navbar from "../components/navbar/Navbar";
+import NavbarWrapper from "../components/navbar/NavbarWrapper";
 
 const layout = ({ children }) => {
   return (
     <>
-      <Navbar />
+      <NavbarWrapper />
       {children}
     </>
   );

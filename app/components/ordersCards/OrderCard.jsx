@@ -1,27 +1,30 @@
-"use client";
-import React from "react";
+import React, { useState } from "react";
 import {
   Box,
   Paper,
   Typography,
   Divider,
-  Grid,
   Chip,
-  Avatar,
   Card,
   CardMedia,
-  CardContent,
   List,
-  ListItem,
+  Button,
+  IconButton,
+  Radio,
+  RadioGroup,
+  FormControlLabel,
+  FormControl,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import PersonIcon from "@mui/icons-material/Person";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import PendingIcon from "@mui/icons-material/Pending";
+import DeleteIcon from "@mui/icons-material/Delete";
+import CancelIcon from "@mui/icons-material/Cancel";
 import styles from "./orderStyle.module.scss";
+import toast from "react-hot-toast";
 
-// Helper function to format date
 const formatDate = (dateString) => {
   const options = {
     year: "numeric",
@@ -33,7 +36,18 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-US", options);
 };
 
-const OrderCard = ({ orderData }) => {
+const OrderCard = ({
+  orderData,
+  onDeleteItem,
+  isDeleting,
+  tableOrdersID,
+  setOrdersID,
+  handleDeleteAllTableOrder,
+  handleServedTableOrder,
+  handleCheckOutTableOrder,
+}) => {
+  const [paymentType, setPaymentType] = useState("");
+
   if (!orderData) {
     return (
       <Box className={styles.noOrderContainer}>
@@ -44,36 +58,89 @@ const OrderCard = ({ orderData }) => {
 
   const { tableNumber, items, total, createdAt, orderBy } = orderData;
 
+  const handleDeleteItem = (itemId) => {
+    if (!itemId) {
+      toast.error("Error deleting item");
+    }
+    if (onDeleteItem && !isDeleting) {
+      setOrdersID(tableOrdersID);
+      onDeleteItem(itemId);
+    }
+  };
+
+  const handleCancelTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error deleting order");
+    }
+    handleDeleteAllTableOrder(orderData?._id);
+  };
+  const handleServedTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error marking served order");
+    }
+    handleServedTableOrder(orderData?._id);
+  };
+  const handleCheckoutTable = () => {
+    if (!orderData?._id) {
+      toast.error("Error checking out order");
+    }
+    if (!paymentType) {
+      toast.error("Please select a payment type.");
+      return;
+    }
+
+    handleCheckOutTableOrder({ tableId: orderData?._id, paymentType });
+  };
+
+  const itemAllServed = items.every((item) => item.orderServed);
+
   return (
     <Box className={styles.container}>
       <Paper elevation={3} className={styles.orderCard}>
-        {/* Order Header */}
+        {/* Header */}
         <Box className={styles.header}>
           <Box className={styles.headerMain}>
             <Box className={styles.titleSection}>
-              <Typography variant="h5" component="h1" className={styles.title}>
+              <Typography variant="h5" className={styles.title}>
                 Order Details
               </Typography>
               <Chip
                 icon={<TableRestaurantIcon fontSize="small" />}
                 label={`Table ${tableNumber}`}
-                className={styles.tableChip}
+                sx={{
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  color: "white",
+                  fontWeight: "bold",
+                }}
               />
             </Box>
             <Chip
               label="ACTIVE"
-              color="warning"
-              className={styles.statusChip}
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                color: "white",
+                fontWeight: "bold",
+              }}
             />
           </Box>
 
           <Box className={styles.orderMeta}>
             <Box className={styles.metaItem}>
-              <AccessTimeIcon className={styles.metaIcon} />
+              <AccessTimeIcon
+                sx={{
+                  color: "#ff5722",
+                }}
+                className={styles.metaIcon}
+              />
               <Typography variant="body2">{formatDate(createdAt)}</Typography>
             </Box>
             <Box className={styles.metaItem}>
-              <PersonIcon className={styles.metaIcon} />
+              <PersonIcon
+                sx={{
+                  color: "#ff5722",
+                }}
+                className={styles.metaIcon}
+              />
               <Typography variant="body2">
                 Ordered by: {orderBy === "staff" ? "Staff" : "Customer"}
               </Typography>
@@ -81,132 +148,281 @@ const OrderCard = ({ orderData }) => {
           </Box>
         </Box>
 
-        <Divider className={styles.divider} />
+        <Divider />
 
-        {/* Order Items */}
+        {/* Items */}
         <Box className={styles.itemsSection}>
-          <Typography variant="h6" className={styles.sectionTitle}>
+          <Typography
+            variant="h6"
+            className={styles.sectionTitle}
+            sx={{
+              background: "linear-gradient(90deg, #ff5722, #ff9800)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              fontWeight: "bold",
+            }}
+          >
             Items
           </Typography>
 
           <List className={styles.itemsList}>
             {items.map((item) => (
               <Card key={item._id} className={styles.itemCard}>
-                <Grid container spacing={2} className={styles.itemContent}>
-                  <Grid
-                    item
-                    xs={3}
-                    sm={2}
-                    className={styles.itemImageContainer}
-                  >
+                <Box className={styles.itemContentRow}>
+                  {/* Left Side: Image + Details */}
+                  <Box className={styles.itemLeft}>
                     <CardMedia
                       component="img"
-                      className={styles.itemImage}
                       image={item.menuItem.image}
                       alt={item.menuItem.name}
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        objectFit: "cover",
+                        borderRadius: "8px",
+                        border: "2px solid #ff5722",
+                      }}
                     />
-                  </Grid>
-
-                  <Grid item xs={9} sm={10}>
-                    <Grid container>
-                      <Grid item xs={12} sm={8}>
-                        <Box className={styles.itemDetails}>
-                          <Typography
-                            variant="subtitle1"
-                            className={styles.itemName}
-                          >
-                            {item.menuItem.name}
-                          </Typography>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            className={styles.itemDescription}
-                          >
-                            {item.menuItem.description}
-                          </Typography>
+                    <Box className={styles.itemDetails}>
+                      <Typography
+                        variant="subtitle1"
+                        className={styles.itemName}
+                      >
+                        {item.menuItem.name}
+                      </Typography>
+                      <Typography
+                        variant="body2"
+                        className={styles.itemDescription}
+                      >
+                        {item.menuItem.description}
+                      </Typography>
+                      <Chip
+                        label={item.menuItem.category}
+                        size="small"
+                        sx={{
+                          background:
+                            "linear-gradient(90deg, #ff5722, #ff9800)",
+                          color: "white",
+                          fontSize: "0.75rem",
+                          width: "fit-content",
+                        }}
+                      />
+                      <Box className={styles.servedStatus}>
+                        {item.orderServed ? (
                           <Chip
-                            label={item.menuItem.category}
+                            icon={<CheckCircleOutlineIcon fontSize="small" />}
+                            label="Served"
                             size="small"
-                            className={styles.categoryChip}
+                            color="success"
+                            variant="outlined"
                           />
-                          <Box className={styles.servedStatus}>
-                            {item.orderServed ? (
-                              <Chip
-                                icon={
-                                  <CheckCircleOutlineIcon fontSize="small" />
-                                }
-                                label="Served"
-                                size="small"
-                                color="success"
-                                variant="outlined"
-                              />
-                            ) : (
-                              <Chip
-                                icon={<PendingIcon fontSize="small" />}
-                                label="Preparing"
-                                size="small"
-                                color="warning"
-                                variant="outlined"
-                              />
-                            )}
-                          </Box>
-                        </Box>
-                      </Grid>
+                        ) : (
+                          <Chip
+                            icon={<PendingIcon fontSize="small" />}
+                            label="Preparing"
+                            size="small"
+                            color="warning"
+                            variant="outlined"
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
 
-                      <Grid item xs={12} sm={4}>
-                        <Box className={styles.priceSection}>
-                          <Box className={styles.quantityPrice}>
-                            <Typography variant="body2" color="text.secondary">
-                              Price: ₹{item.price}
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Qty: {item.quantity}
-                            </Typography>
-                          </Box>
-                          <Typography
-                            variant="subtitle1"
-                            className={styles.subtotal}
-                          >
-                            ₹{item.price * item.quantity}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Grid>
-                </Grid>
+                  {/* Right Side: Quantity + Price + Delete */}
+                  <Box className={styles.itemRight}>
+                    <Typography variant="body2" color="text.secondary">
+                      Qty: {item.quantity}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Price: ₹{item.price}
+                    </Typography>
+                    <Typography
+                      variant="subtitle1"
+                      fontWeight="bold"
+                      className={styles.subtotal}
+                      sx={{
+                        background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                      }}
+                    >
+                      ₹{item.price * item.quantity}
+                    </Typography>
+                    <IconButton
+                      onClick={() => handleDeleteItem(item.menuItem._id)}
+                      color="error"
+                      size="small"
+                      disabled={isDeleting || item?.orderServed}
+                      sx={{
+                        mt: 1,
+                        "&:hover": {
+                          background: "rgba(255, 87, 34, 0.1)",
+                        },
+                      }}
+                    >
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
               </Card>
             ))}
           </List>
         </Box>
 
-        {/* Order Summary */}
+        <Divider />
+
+        {/* Summary */}
         <Box className={styles.summary}>
-          <Divider className={styles.divider} />
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 1,
+            }}
+          >
+            <Typography>Items:</Typography>
+            <Typography>
+              {items.reduce((total, item) => total + item.quantity, 0)}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              mb: 2,
+            }}
+          >
+            <Typography>Subtotal:</Typography>
+            <Typography
+              sx={{
+                background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                fontWeight: "bold",
+                fontSize: "1.1rem",
+              }}
+            >
+              ₹{total}
+            </Typography>
+          </Box>
 
-          <Box className={styles.summaryContent}>
-            <Box className={styles.summaryRow}>
-              <Typography variant="body1">Items:</Typography>
-              <Typography variant="body1">
-                {items.reduce((total, item) => total + item.quantity, 0)}
-              </Typography>
-            </Box>
+          {/* Action Buttons */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: 2,
+              mt: 2,
+              alignItems: "center",
+            }}
+          >
+            {/* Left side - Cancel Table button */}
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<CancelIcon />}
+              disabled={itemAllServed}
+              onClick={handleCancelTable}
+              sx={{
+                borderColor: "#ff5722",
+                color: "#ff5722",
+                background: "transparent",
+                "&:hover": {
+                  borderColor: "#ff5722",
+                  backgroundColor: "rgba(255, 87, 34, 0.1)",
+                },
+                "&.Mui-disabled": {
+                  borderColor: "#ffccbc",
+                  color: "#ffccbc",
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  opacity: 0.5,
+                  cursor: "not-allowed",
+                },
+              }}
+            >
+              Cancel Table
+            </Button>
 
-            <Box className={styles.summaryRow}>
-              <Typography variant="body1">Subtotal:</Typography>
-              <Typography variant="body1">₹{total}</Typography>
-            </Box>
-
-            <Divider className={styles.summaryDivider} />
-
-            <Box className={styles.totalRow}>
-              <Typography variant="h6">Total:</Typography>
-              <Typography
-                variant="h6"
-                color="primary"
-                className={styles.totalAmount}
+            {/* Right side - Served, Payment Type, and Checkout buttons */}
+            <Box sx={{ display: "flex", gap: 2, alignItems: "center" }}>
+              <Button
+                variant="contained"
+                color="success"
+                disabled={itemAllServed}
+                onClick={handleServedTable}
+                sx={{
+                  background: "linear-gradient(90deg, #4caf50, #8bc34a)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #45a049, #7cb342)",
+                  },
+                  "&.Mui-disabled": {
+                    background: "linear-gradient(90deg, #c8e6c9, #e8f5e9)",
+                    color: "#a5a5a5",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                  },
+                }}
               >
-                ₹{total}
-              </Typography>
+                Served
+              </Button>
+              {/* Payment Type Radio Buttons */}
+              <FormControl sx={{ ml: 2 }}>
+                <RadioGroup
+                  row
+                  value={paymentType}
+                  onChange={(e) => setPaymentType(e.target.value)}
+                  name="payment-type"
+                >
+                  <FormControlLabel
+                    value="online"
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#ff9800",
+                          "&.Mui-checked": {
+                            color: "#ff5722",
+                          },
+                        }}
+                      />
+                    }
+                    label="Online"
+                  />
+                  <FormControlLabel
+                    value="cash"
+                    control={
+                      <Radio
+                        sx={{
+                          color: "#ff9800",
+                          "&.Mui-checked": {
+                            color: "#ff5722",
+                          },
+                        }}
+                      />
+                    }
+                    label="Cash"
+                  />
+                </RadioGroup>
+              </FormControl>
+              <Button
+                variant="contained"
+                onClick={handleCheckoutTable}
+                disabled={!itemAllServed || !paymentType}
+                sx={{
+                  background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  "&:hover": {
+                    background: "linear-gradient(90deg, #e64a19, #f57c00)",
+                  },
+                  "&.Mui-disabled": {
+                    background: "linear-gradient(90deg, #ffccbc, #ffe0b2)",
+                    color: "#a5a5a5",
+                    opacity: 0.7,
+                    cursor: "not-allowed",
+                  },
+                }}
+              >
+                Checkout
+              </Button>
             </Box>
           </Box>
         </Box>

@@ -3,18 +3,19 @@ import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Container, Alert, Box } from "@mui/material";
-import OrderCard from "@/app/components/ordersCards/OrderCard";
-import LoaderComp from "@/app/components/LoaderComp/LoadingComp";
+import OrderCard from "../../components/ordersCards/OrderCard";
+import LoaderComp from "../../components/LoaderComp/LoadingComp";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 const page = () => {
   const userData = useSelector((state) => state.selectedUser.value);
   const queryClient = useQueryClient();
   const [localStorageData, setLocalStorageData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [ordersID, setOrdersID] = useState("");
 
-  // Move localStorage access to useEffect
   useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
     const storedData =
       typeof window !== "undefined"
         ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
@@ -24,56 +25,211 @@ const page = () => {
     setIsLoading(false);
   }, []);
 
-  const isCustomer =
-    userData?.username === "customer" ||
-    localStorageData?.username === "customer";
+  const getOrder = async () => {
+    const response = await axios.get(
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/orders`
+        : `${process.env.PROD_BACKEDN}/api/orders`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  };
 
-  const isStaff =
-    userData?.username === "staff" || localStorageData?.username === "staff";
-
-  const { isPending, isError, data, error } = useQuery({
+  const {
+    isLoading: dataLoading,
+    data,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["getOrder"],
-    queryFn: () =>
-      fetch(`https://resturant-mgr-backend.onrender.com/api/orders`).then(
-        (res) => res.json()
-      ),
+    queryFn: getOrder,
+    refetchOnWindowFocus: false,
+    refetchOnMount: true,
+    refetchInterval: false,
+    staleTime: 0,
+    cacheTime: 0,
   });
 
-  useEffect(() => {
-    console.log("data", data);
-  }, [data]);
+  const deleteItemOrder = async (itemId) => {
+    const response = await axios.put(
+      `http://localhost:5000/api/order/${ordersID}/remove-item`,
+      {
+        menuItemId: itemId,
+      },
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  };
 
-  if (isPending || isLoading) return <LoaderComp />;
+  const deleteItemMutation = useMutation({
+    mutationFn: deleteItemOrder,
+    onSuccess: async () => {
+      toast.success("Item deleted successfully!");
+      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
 
-  if (isError) {
+  const deleteAllTableOrder = async (tableId) => {
+    const response = await axios.delete(
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}`
+        : `${process.env.PROD_BACKEDN}/api/order/${tableId}`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  };
+
+  const deleteAllOrderMutation = useMutation({
+    mutationFn: deleteAllTableOrder,
+    onSuccess: async () => {
+      toast.success("Item deleted successfully!");
+      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+
+  const servedTableOrder = async (tableId) => {
+    const response = await axios.put(
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/mark-all-served`
+        : `${process.env.PROD_BACKEDN}/api/order/${tableId}/mark-all-served`,
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  };
+
+  const servedOrderMutation = useMutation({
+    mutationFn: servedTableOrder,
+    onSuccess: async () => {
+      toast.success("Table Served");
+      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+
+  const checkoutTableOrder = async ({ tableId, paymentType }) => {
+    const response = await axios.post(
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/complete`
+        : `${process.env.PROD_BACKEDN}/api/order/${tableId}/complete`,
+      {
+        paymentMethod: paymentType,
+      },
+      {
+        withCredentials: true,
+      }
+    );
+    return response.data;
+  };
+
+  const checkoutOrderMutation = useMutation({
+    mutationFn: checkoutTableOrder,
+    onSuccess: async () => {
+      toast.success("Order Completed");
+      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      refetch();
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error);
+    },
+  });
+
+  const handleCheckOutTableOrder = ({ tableId, paymentType }) => {
+    checkoutOrderMutation.mutate({ tableId, paymentType });
+  };
+
+  const handleServedTableOrder = (tableId) => {
+    servedOrderMutation.mutate(tableId);
+  };
+
+  const handleDeleteAllTableOrder = (tableId) => {
+    deleteAllOrderMutation.mutate(tableId);
+  };
+
+  const handleDeleteItem = (itemId) => {
+    deleteItemMutation.mutate(itemId);
+  };
+
+  // useEffect(() => {
+  //   console.log("data", data);
+  // }, [data]);
+
+  if (dataLoading || isLoading) return <LoaderComp />;
+
+  if (error) {
     return (
-      <Container className={styles.errorContainer}>
+      <Box
+        sx={{
+          width: "100vw",
+          height: "100vh",
+          backgroundColor: "#f5f5f5",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: 2,
+        }}
+      >
         <Alert severity="error">Error loading order: {error.message}</Alert>
-      </Container>
+      </Box>
     );
   }
 
   return (
-    <>
-      {data && data.length === 0 && (
-        <Container className={styles.errorContainer}>
+    <Box
+      sx={{
+        backgroundColor: "#fff",
+        overflowY: "auto",
+        overflowX: "hidden",
+        padding: 3,
+        boxSizing: "border-box",
+      }}
+    >
+      {data?.length === 0 ? (
+        <Container maxWidth="sm">
           <Alert severity="info">No orders found.</Alert>
         </Container>
+      ) : (
+        <Container maxWidth="md">
+          {data.map((order) => (
+            <Box
+              key={order._id}
+              sx={{
+                mb: 4,
+              }}
+            >
+              <OrderCard
+                orderData={order}
+                onDeleteItem={handleDeleteItem}
+                isDeleting={deleteItemMutation.isPending}
+                setOrdersID={setOrdersID}
+                tableOrdersID={order._id}
+                handleDeleteAllTableOrder={handleDeleteAllTableOrder}
+                handleServedTableOrder={handleServedTableOrder}
+                handleCheckOutTableOrder={handleCheckOutTableOrder}
+              />
+            </Box>
+          ))}
+        </Container>
       )}
-      {data &&
-        data.length > 0 &&
-        data.map((order) => (
-          <Box
-            key={order._id}
-            sx={{
-              height: "100vh",
-              backgroundColor: "#ffff",
-            }}
-          >
-            <OrderCard orderData={order} />
-          </Box>
-        ))}
-    </>
+    </Box>
   );
 };
 
