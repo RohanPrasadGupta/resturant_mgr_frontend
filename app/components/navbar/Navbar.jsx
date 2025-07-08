@@ -51,7 +51,6 @@ const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signInClicked, setSignInClicked] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const [localStorageData, setLocalStorageData] = useState(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
@@ -59,17 +58,10 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
 
-  const isCustomer =
-    localStorageData?.username === "customer" ||
-    userData?.username === "customer";
-
-  // console.log("userData", process.env.PROD_BACKEDN);
+  const isCustomer = userData?.username === "customer";
 
   const isStaff =
-    localStorageData?.username === "staff" ||
-    userData?.username === "staff" ||
-    localStorageData?.username === "admin" ||
-    userData?.username === "admin";
+    userData?.username === "staff" || userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
@@ -81,19 +73,25 @@ const Navbar = () => {
   } = useQuery({
     queryKey: ["getTables"],
     queryFn: () =>
-      fetch("https://resturant-mgr-backend.onrender.com/api/tables").then(
-        (res) => res.json()
-      ),
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/tables`
+          : `${process.env.PROD_BACKEDN}/api/tables`
+      ).then((res) => res.json()),
   });
 
   const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
     mutationFn: () =>
-      fetch("https://resturant-mgr-backend.onrender.com/api/users/logout", {
-        method: "POST",
-        credentials: "include", // Important for cookie clearing
-      }).then((res) => res.json()),
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/users/logout`
+          : `${process.env.PROD_BACKEDN}/api/users/logout`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      ).then((res) => res.json()),
     onSuccess: () => {
-      localStorage.removeItem("mgrUserData");
       dispatch(logoutUserRedux());
       setLogoutDialogOpen(false);
       toast.success("Successfully logged out");
@@ -104,7 +102,6 @@ const Navbar = () => {
     },
   });
 
-  // Get table from URL parameters or localStorage
   useEffect(() => {
     const tableNumber = searchParams.get("tableNumber");
     const username = searchParams.get("username");
@@ -112,23 +109,8 @@ const Navbar = () => {
       dispatch(
         loginUserRedux({ username: username, tableNumber: tableNumber })
       );
-      localStorage.setItem(
-        "mgrUserData",
-        JSON.stringify({ username, tableNumber })
-      );
     }
-  }, [searchParams]);
-
-  // Move localStorage access to useEffect
-  useEffect(() => {
-    // Get data from localStorage after component mounts (client-side only)
-    const storedData =
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
-        : null;
-
-    setLocalStorageData(storedData);
-  }, []);
+  }, [searchParams, dispatch]);
 
   const handleDrawerToggle = () => {
     setDrawerOpen(!drawerOpen);
@@ -136,13 +118,6 @@ const Navbar = () => {
 
   const handleTableChange = (event) => {
     dispatch(updateTableNumberRedux(event.target.value));
-    localStorage.setItem(
-      "mgrUserData",
-      JSON.stringify({
-        username: userData.username,
-        tableNumber: event.target.value,
-      })
-    );
   };
 
   const handleClose = () => {
@@ -273,14 +248,10 @@ const Navbar = () => {
           {!isMobile && (
             <Box className={styles.tableSelectWrapper}>
               {isCustomer ? (
-                // For customers, just show their table number without the dropdown
                 <Box className={styles.customerTableDisplay}>
                   <TableRestaurantIcon className={styles.tableIcon} />
                   <Typography variant="body2">
-                    Table:{" "}
-                    {userData.tableNumber === ""
-                      ? localStorageData.tableNumber
-                      : userData.tableNumber}
+                    Table: {userData.tableNumber || "Not selected"}
                   </Typography>
                 </Box>
               ) : (
