@@ -30,6 +30,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import PersonIcon from "@mui/icons-material/Person";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -57,11 +58,14 @@ const Navbar = () => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
+  const router = useRouter();
 
   const isCustomer = userData?.username === "customer";
 
   const isStaff =
     userData?.username === "staff" || userData?.username === "admin";
+
+  const isAdmin = userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
@@ -137,11 +141,18 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: "Home", path: "/pages/home", icon: <HomeIcon /> },
+    { name: "Home", path: "/pages/home", icon: <HomeIcon />, showBtn: true },
     {
       name: "Orders",
       path: isStaff ? "/pages/allOrder" : "/pages/order",
       icon: <ShoppingBagIcon />,
+      showBtn: true,
+    },
+    {
+      name: "Admin",
+      path: isAdmin ? "/pages/admin" : "/pages/home",
+      icon: <AdminPanelSettingsIcon />,
+      showBtn: isAdmin ? true : false,
     },
   ];
 
@@ -330,11 +341,13 @@ const Navbar = () => {
                       isActive(item.path) ? styles.activeButton : ""
                     }`}
                     startIcon={item.icon}
+                    sx={{ display: item.showBtn ? "inline-flex" : "none" }}
                   >
                     {item.name}
                   </Button>
                 </Link>
               ))}
+
               {isCustomer ? (
                 <Box
                   sx={{

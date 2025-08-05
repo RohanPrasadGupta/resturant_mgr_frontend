@@ -193,6 +193,42 @@
   }
 }
 
+.adminButton {
+  padding: 6px 16px !important;
+  border-radius: 20px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.5px !important;
+  transition: all 0.2s ease !important;
+  text-transform: none !important;
+  background-color: #ff9800 !important;
+  color: white !important;
+  margin-left: 8px !important;
+  box-shadow: none !important;
+
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    transform: translateY(-2px);
+  }
+
+  &.activeAdminButton {
+    background-color: white !important;
+    color: #ff9800 !important;
+    position: relative;
+
+    &::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 20px;
+      height: 3px;
+      background-color: #ff9800;
+      border-radius: 3px;
+    }
+  }
+}
+
 .divider {
   background-color: rgba(255, 255, 255, 0.2) !important;
   margin: 8px 16px !important;
