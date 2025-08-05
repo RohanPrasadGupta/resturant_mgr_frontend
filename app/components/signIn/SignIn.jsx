@@ -44,7 +44,6 @@ const SignIn = ({ handleClose }) => {
       return response.json();
     },
     onSuccess: (data) => {
-      console.log("data Login", data);
       if (data.message === "Invalid email or password") {
         toast.error("Invalid email or password");
       } else {

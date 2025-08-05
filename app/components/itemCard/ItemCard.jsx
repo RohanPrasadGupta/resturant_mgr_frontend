@@ -13,6 +13,7 @@ import {
   TextField,
   Tooltip,
   Badge,
+  CircularProgress,
 } from "@mui/material";
 import AddShoppingCartIcon from "@mui/icons-material/AddShoppingCart";
 import AddIcon from "@mui/icons-material/Add";
@@ -23,6 +24,7 @@ import styles from "./ItemCardStyle.module.scss";
 import classNames from "classnames";
 import { useSelector } from "react-redux";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 
 const ItemCard = ({ data }) => {
   const { name, description, price, category, image, available } = data;
@@ -31,6 +33,7 @@ const ItemCard = ({ data }) => {
   const userData = useSelector((state) => state.selectedUser.value);
   const [localStorageData, setLocalStorageData] = useState(null);
   const [username, setUsername] = useState("");
+  const [updateTimeout, setUpdateTimeout] = useState(null);
 
   useEffect(() => {
     const storedData =
@@ -131,37 +134,121 @@ const ItemCard = ({ data }) => {
     },
   });
 
-  // useEffect(() => {
-  //   console.log("tablenumber, username", tableNumber, username);
-  //   console.log("userData, localStorageData", userData, localStorageData);
-  //   console.log("tableInfo", tableInfo);
-  // }, [tableNumber, username, tableInfo]);
+  const { mutate: handleUpdateQty, isPending: isUpdatingQty } = useMutation({
+    mutationFn: async ({ menuItemId, updatedQuantity }) => {
+      const response = await fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order/${tableInfo?.currentOrder?._id}/update-quantity`
+          : `${process.env.PROD_BACKEDN}/api/order/${tableInfo?.currentOrder?._id}/update-quantity`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            menuItemId: menuItemId,
+            quantity: updatedQuantity,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to update item quantity.");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+    },
+    onError: () => {
+      // console.error("Error updating item quantity.", error.message);
+      toast.error("Error updating item.");
+    },
+  });
+
+  useEffect(() => {
+    if (tableInfo?.currentOrder?.items) {
+      const itemInCart = tableInfo.currentOrder.items.find(
+        (item) => item?.menuItem?._id === data?._id
+      );
+
+      if (itemInCart) {
+        setQuantity(itemInCart?.quantity);
+        setIsAddedToCart(true);
+      }
+    }
+  }, [tableInfo, data]);
+
+  const increaseQuantity = () => {
+    const updatedQuantity = quantity + 1;
+    setQuantity(updatedQuantity);
+
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      const updatedItemID = tableInfo?.currentOrder?.items.find(
+        (item) => item?.menuItem?._id === data?._id
+      );
+      handleUpdateQty({
+        menuItemId: updatedItemID?.menuItem?._id,
+        updatedQuantity,
+      });
+    }, 2000);
+
+    setUpdateTimeout(timeout);
+  };
+
+  const decreaseQuantity = () => {
+    const updatedQuantity = quantity > 1 ? quantity - 1 : 1;
+    setQuantity(updatedQuantity);
+
+    if (updateTimeout) {
+      clearTimeout(updateTimeout);
+    }
+
+    const timeout = setTimeout(() => {
+      const updatedItemID = tableInfo?.currentOrder?.items.find(
+        (item) => item?.menuItem?._id === data?._id
+      );
+      handleUpdateQty({
+        menuItemId: updatedItemID?.menuItem?._id,
+        updatedQuantity,
+      });
+    }, 2000);
+
+    setUpdateTimeout(timeout);
+  };
 
   const handleQuantityChange = (event) => {
     const value = parseInt(event.target.value, 10);
     if (!isNaN(value) && value >= 1) {
       setQuantity(value);
+
+      if (updateTimeout) {
+        clearTimeout(updateTimeout);
+      }
+
+      const timeout = setTimeout(() => {
+        const updatedItemID = tableInfo?.currentOrder?.items.find(
+          (item) => item?.menuItem?._id === data?._id
+        );
+        handleUpdateQty({
+          menuItemId: updatedItemID?.menuItem?._id,
+          updatedQuantity: value,
+        });
+      }, 2000); // Wait for 2 seconds before updating
+
+      setUpdateTimeout(timeout);
     }
   };
 
-  const increaseQuantity = () => {
-    setQuantity((prevQuantity) => prevQuantity + 1);
-  };
-
-  const decreaseQuantity = () => {
-    setQuantity((prevQuantity) => (prevQuantity > 1 ? prevQuantity - 1 : 1));
-  };
-
   const handleAddToCart = () => {
-    // console.log(
-    //   "tableNumber,tableInfo._id,data._id,username",
-    //   tableNumber,
-    //   tableInfo?._id,
-    //   data._id,
-    //   username
-    // );
     if (!tableNumber || !tableInfo?._id || !data?._id || !username) {
-      console.warn("Missing required fields for order");
+      toast.error("unable to add item to cart.");
       return;
     }
 
@@ -265,9 +352,13 @@ const ItemCard = ({ data }) => {
                     size="small"
                     onClick={decreaseQuantity}
                     className={styles.quantityButton}
-                    disabled={quantity <= 1}
+                    disabled={isUpdatingQty || quantity <= 1}
                   >
-                    <RemoveIcon fontSize="small" />
+                    {isUpdatingQty ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <RemoveIcon fontSize="small" />
+                    )}
                   </IconButton>
 
                   <TextField
@@ -278,7 +369,7 @@ const ItemCard = ({ data }) => {
                     type="number"
                     inputProps={{
                       min: 1,
-                      style: { textAlign: "center", padding: "2px" },
+                      style: { textAlign: "center", padding: "1px" },
                     }}
                     className={styles.quantityInput}
                   />
@@ -287,33 +378,34 @@ const ItemCard = ({ data }) => {
                     size="small"
                     onClick={increaseQuantity}
                     className={styles.quantityButton}
+                    disabled={isUpdatingQty}
                   >
-                    <AddIcon fontSize="small" />
+                    {isUpdatingQty ? (
+                      <CircularProgress size={16} />
+                    ) : (
+                      <AddIcon fontSize="small" />
+                    )}
                   </IconButton>
                 </Box>
 
-                <Tooltip title="Remove from cart">
-                  <IconButton
-                    color="error"
-                    size="small"
-                    onClick={handleRemoveFromCart}
-                    className={styles.deleteButton}
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Tooltip>
+                <IconButton
+                  color="error"
+                  size="small"
+                  onClick={handleRemoveFromCart}
+                  className={styles.deleteButton}
+                >
+                  <DeleteIcon fontSize="small" />
+                </IconButton>
               </Box>
             ) : (
-              <Tooltip title="Add to Cart">
-                <Button
-                  variant="contained"
-                  onClick={handleAddToCart}
-                  className={styles.addButton}
-                  startIcon={<AddShoppingCartIcon />}
-                >
-                  Add
-                </Button>
-              </Tooltip>
+              <Button
+                variant="contained"
+                onClick={handleAddToCart}
+                className={styles.addButton}
+                startIcon={<AddShoppingCartIcon />}
+              >
+                Add
+              </Button>
             )}
           </>
         )}

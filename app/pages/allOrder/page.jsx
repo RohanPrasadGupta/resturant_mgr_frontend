@@ -178,7 +178,7 @@ const page = () => {
     return (
       <Box
         sx={{
-          width: "100vw",
+          width: "100%",
           height: "100vh",
           backgroundColor: "#f5f5f5",
           display: "flex",
@@ -192,6 +192,23 @@ const page = () => {
     );
   }
 
+  if (data?.length === 0) {
+    return (
+      <Box
+        sx={{
+          width: "100%",
+          minHeight: "95vh",
+          backgroundColor: "#fff",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Alert severity="info">No orders found.</Alert>
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
@@ -200,35 +217,31 @@ const page = () => {
         overflowX: "hidden",
         padding: 3,
         boxSizing: "border-box",
+        width: "100%",
+        minHeight: "95vh",
       }}
     >
-      {data?.length === 0 ? (
-        <Container maxWidth="sm">
-          <Alert severity="info">No orders found.</Alert>
-        </Container>
-      ) : (
-        <Container maxWidth="md">
-          {data.map((order) => (
-            <Box
-              key={order._id}
-              sx={{
-                mb: 4,
-              }}
-            >
-              <OrderCard
-                orderData={order}
-                onDeleteItem={handleDeleteItem}
-                isDeleting={deleteItemMutation.isPending}
-                setOrdersID={setOrdersID}
-                tableOrdersID={order._id}
-                handleDeleteAllTableOrder={handleDeleteAllTableOrder}
-                handleServedTableOrder={handleServedTableOrder}
-                handleCheckOutTableOrder={handleCheckOutTableOrder}
-              />
-            </Box>
-          ))}
-        </Container>
-      )}
+      <Container maxWidth="md">
+        {data.map((order) => (
+          <Box
+            key={order._id}
+            sx={{
+              mb: 4,
+            }}
+          >
+            <OrderCard
+              orderData={order}
+              onDeleteItem={handleDeleteItem}
+              isDeleting={deleteItemMutation.isPending}
+              setOrdersID={setOrdersID}
+              tableOrdersID={order._id}
+              handleDeleteAllTableOrder={handleDeleteAllTableOrder}
+              handleServedTableOrder={handleServedTableOrder}
+              handleCheckOutTableOrder={handleCheckOutTableOrder}
+            />
+          </Box>
+        ))}
+      </Container>
     </Box>
   );
 };

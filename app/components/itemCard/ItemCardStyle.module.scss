@@ -1,5 +1,5 @@
 .styledCard {
-  max-width: 320px;
+  min-width: 250px;
   margin: 16px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
@@ -174,7 +174,6 @@
   transition: all 0.3s ease !important;
 
   &:hover:not([disabled]) {
-    background: linear-gradient(45deg, #ff5722, #ff9800) !important;
     box-shadow: 0 6px 14px rgba(255, 152, 0, 0.4) !important;
     transform: translateY(-2px);
   }
@@ -190,8 +189,6 @@
   }
 }
 
-// Add these new styles to your existing SCSS file
-
 .addedToCart {
   position: relative;
   border: 2px solid transparent !important;
@@ -206,7 +203,6 @@
     left: -2px;
     z-index: -1;
     border-radius: 14px;
-    background: linear-gradient(45deg, #ff9800, #ff5722);
     animation: borderPulse 2s infinite;
   }
 }
@@ -237,8 +233,9 @@
 
 .cartControls {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
   gap: 8px;
   animation: fadeIn 0.3s ease;
 }
@@ -275,13 +272,12 @@
   }
 }
 
-// Update existing styles to accommodate the new features
 .cardActions {
   display: flex;
-  align-items: flex-start;
+  flex-direction: row;
+  align-items: center;
   justify-content: space-between;
-  padding: 0 16px 16px !important;
-  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .quantityControls {
