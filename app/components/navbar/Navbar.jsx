@@ -45,6 +45,7 @@ import SignIn from "../signIn/SignIn";
 import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -84,12 +85,8 @@ const Navbar = () => {
           credentials: "include",
         }
       ).then((res) => res.json()),
+    enabled: isStaff,
   });
-
-  useEffect(() => {
-    console.log("Tables data:", tables);
-    console.log("error error:", error);
-  }, [tables]);
 
   const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
     mutationFn: () =>
@@ -221,8 +218,15 @@ const Navbar = () => {
                             disabled={table.status !== "available"}
                           >
                             {table.number}{" "}
-                            {table.status !== "available" &&
-                              `(${table.status})`}
+                            {table.status !== "available" && (
+                              <FiberManualRecordIcon
+                                sx={{
+                                  color: "green",
+                                  fontSize: 12,
+                                  ml: 0.5,
+                                }}
+                              />
+                            )}
                           </MenuItem>
                         ))
                       : null}
@@ -307,8 +311,15 @@ const Navbar = () => {
                           ? tables.map((table) => (
                               <MenuItem key={table._id} value={table.number}>
                                 {table.number}{" "}
-                                {table.status !== "available" &&
-                                  `(${table.status})`}
+                                {table.status !== "available" && (
+                                  <FiberManualRecordIcon
+                                    sx={{
+                                      color: "green",
+                                      fontSize: 12,
+                                      ml: 0.5,
+                                    }}
+                                  />
+                                )}
                               </MenuItem>
                             ))
                           : null}

@@ -12,7 +12,6 @@ const page = () => {
   // const userData = useSelector((state) => state.selectedUser.value);
   // const [localStorageData, setLocalStorageData] = useState(null);
   const queryClient = useQueryClient();
-  const [isLoading, setIsLoading] = useState(true);
   const [ordersID, setOrdersID] = useState("");
 
   // useEffect(() => {
@@ -79,20 +78,17 @@ const page = () => {
     },
   });
 
-  const deleteAllTableOrder = async (tableId) => {
-    const response = await axios.delete(
-      process.env.NODE_ENV === "development"
-        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}`
-        : `${process.env.PROD_BACKEDN}/api/order/${tableId}`,
-      {
-        withCredentials: true,
-      }
-    );
-    return response.data;
-  };
-
-  const deleteAllOrderMutation = useMutation({
-    mutationFn: deleteAllTableOrder,
+  const { mutate: deleteAllOrderMutation } = useMutation({
+    mutationFn: ({ tableId }) =>
+      fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}`
+          : `${process.env.PROD_BACKEDN}/api/order/${tableId}`,
+        {
+          method: "DELETE",
+          credentials: "include",
+        }
+      ),
     onSuccess: async () => {
       toast.success("Item deleted successfully!");
       await queryClient.refetchQueries({ queryKey: ["getOrder"] });
@@ -103,74 +99,79 @@ const page = () => {
     },
   });
 
-  const servedTableOrder = async (tableId) => {
-    const response = await axios.put(
-      process.env.NODE_ENV === "development"
-        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/mark-all-served`
-        : `${process.env.PROD_BACKEDN}/api/order/${tableId}/mark-all-served`,
-      {
-        withCredentials: true,
-      }
-    );
-    return response.data;
-  };
-
-  const servedOrderMutation = useMutation({
-    mutationFn: servedTableOrder,
-    onSuccess: async () => {
-      toast.success("Table Served");
-      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
-      refetch();
-    },
-    onError: (error) => {
-      console.error("Error deleting item:", error);
-    },
-  });
-
-  const checkoutTableOrder = async ({ tableId, paymentType }) => {
-    const response = await axios.post(
-      process.env.NODE_ENV === "development"
-        ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/complete`
-        : `${process.env.PROD_BACKEDN}/api/order/${tableId}/complete`,
-      {
-        paymentMethod: paymentType,
+  const { mutate: servedOrderMutation, isPending: servedOrderPending } =
+    useMutation({
+      mutationFn: ({ tableId }) =>
+        fetch(
+          process.env.NODE_ENV === "development"
+            ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/mark-all-served`
+            : `${process.env.PROD_BACKEDN}/api/order/${tableId}/mark-all-served`,
+          {
+            method: "PUT",
+            credentials: "include",
+          }
+        ),
+      onSuccess: async (data) => {
+        console.log("Table served data:", data);
+        toast.success("Table Served");
+        await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+        refetch();
       },
-      {
-        withCredentials: true,
-      }
-    );
-    return response.data;
-  };
+      onError: (error) => {
+        console.error("Error deleting item:", error);
+      },
+    });
 
-  const checkoutOrderMutation = useMutation({
-    mutationFn: checkoutTableOrder,
+  const { mutate: checkoutOrderMutation } = useMutation({
+    mutationFn: async ({ tableId, paymentType }) => {
+      const response = await fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order/${tableId}/complete`
+          : `${process.env.PROD_BACKEDN}/api/order/${tableId}/complete`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentMethod: paymentType,
+          }),
+        }
+      );
+      if (!response.ok) {
+        throw new Error("Failed to complete order");
+      }
+      return response.json();
+    },
     onSuccess: async () => {
       toast.success("Order Completed");
       await queryClient.refetchQueries({ queryKey: ["getOrder"] });
       refetch();
     },
     onError: (error) => {
-      console.error("Error deleting item:", error);
+      console.error("Error completing order:", error);
+      toast.error("Error completing order.");
     },
   });
 
   const handleCheckOutTableOrder = ({ tableId, paymentType }) => {
-    checkoutOrderMutation.mutate({ tableId, paymentType });
+    checkoutOrderMutation({ tableId, paymentType });
   };
 
   const handleServedTableOrder = (tableId) => {
-    servedOrderMutation.mutate(tableId);
+    servedOrderMutation({ tableId });
   };
 
   const handleDeleteAllTableOrder = (tableId) => {
-    deleteAllOrderMutation.mutate(tableId);
+    deleteAllOrderMutation({ tableId });
   };
 
   const handleDeleteItem = (itemId) => {
     deleteItemMutation.mutate(itemId);
   };
 
-  if (dataLoading || isLoading) return <LoaderComp />;
+  if (dataLoading) return <LoaderComp />;
 
   if (error) {
     return (
@@ -230,8 +231,8 @@ const page = () => {
             <OrderCard
               orderData={order}
               onDeleteItem={handleDeleteItem}
-              isDeleting={deleteItemMutation.isPending}
               setOrdersID={setOrdersID}
+              isDeleting={deleteItemMutation.isPending}
               tableOrdersID={order._id}
               handleDeleteAllTableOrder={handleDeleteAllTableOrder}
               handleServedTableOrder={handleServedTableOrder}
