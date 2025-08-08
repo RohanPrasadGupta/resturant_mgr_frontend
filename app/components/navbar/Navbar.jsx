@@ -18,10 +18,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Tooltip,
   CircularProgress,
   Dialog,
-  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
@@ -30,6 +28,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import PersonIcon from "@mui/icons-material/Person";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -46,6 +45,7 @@ import SignIn from "../signIn/SignIn";
 import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
+import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -57,11 +57,14 @@ const Navbar = () => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
+  const router = useRouter();
 
   const isCustomer = userData?.username === "customer";
 
   const isStaff =
     userData?.username === "staff" || userData?.username === "admin";
+
+  const isAdmin = userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
@@ -76,8 +79,13 @@ const Navbar = () => {
       fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/tables`
-          : `${process.env.PROD_BACKEDN}/api/tables`
+          : `${process.env.PROD_BACKEDN}/api/tables`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
       ).then((res) => res.json()),
+    enabled: isStaff,
   });
 
   const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
@@ -137,11 +145,18 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: "Home", path: "/pages/home", icon: <HomeIcon /> },
+    { name: "Home", path: "/pages/home", icon: <HomeIcon />, showBtn: true },
     {
       name: "Orders",
       path: isStaff ? "/pages/allOrder" : "/pages/order",
       icon: <ShoppingBagIcon />,
+      showBtn: true,
+    },
+    {
+      name: "Admin",
+      path: isAdmin ? "/pages/admin" : "/pages/home",
+      icon: <AdminPanelSettingsIcon />,
+      showBtn: isAdmin ? true : false,
     },
   ];
 
@@ -195,17 +210,26 @@ const Navbar = () => {
                     <MenuItem value="">
                       <em>None</em>
                     </MenuItem>
-                    {tables &&
-                      tables.map((table) => (
-                        <MenuItem
-                          key={table._id}
-                          value={table._id}
-                          disabled={table.status !== "available"}
-                        >
-                          {table.number}{" "}
-                          {table.status !== "available" && `(${table.status})`}
-                        </MenuItem>
-                      ))}
+                    {Array.isArray(tables) && isStaff
+                      ? tables.map((table) => (
+                          <MenuItem
+                            key={table._id}
+                            value={table._id}
+                            disabled={table.status !== "available"}
+                          >
+                            {table.number}{" "}
+                            {table.status !== "available" && (
+                              <FiberManualRecordIcon
+                                sx={{
+                                  color: "green",
+                                  fontSize: 12,
+                                  ml: 0.5,
+                                }}
+                              />
+                            )}
+                          </MenuItem>
+                        ))
+                      : null}
                   </Select>
                 </FormControl>
                 {isLoading && (
@@ -256,7 +280,7 @@ const Navbar = () => {
                 </Box>
               ) : (
                 <>
-                  {isStaff && (
+                  {isStaff && tables?.length > 0 && (
                     <FormControl
                       variant="outlined"
                       size="small"
@@ -283,14 +307,22 @@ const Navbar = () => {
                         <MenuItem value="">
                           <em>Select Table</em>
                         </MenuItem>
-                        {tables &&
-                          tables.map((table) => (
-                            <MenuItem key={table._id} value={table.number}>
-                              {table.number}{" "}
-                              {table.status !== "available" &&
-                                `(${table.status})`}
-                            </MenuItem>
-                          ))}
+                        {Array.isArray(tables) && isStaff
+                          ? tables.map((table) => (
+                              <MenuItem key={table._id} value={table.number}>
+                                {table.number}{" "}
+                                {table.status !== "available" && (
+                                  <FiberManualRecordIcon
+                                    sx={{
+                                      color: "green",
+                                      fontSize: 12,
+                                      ml: 0.5,
+                                    }}
+                                  />
+                                )}
+                              </MenuItem>
+                            ))
+                          : null}
                       </Select>
                     </FormControl>
                   )}
@@ -330,11 +362,13 @@ const Navbar = () => {
                       isActive(item.path) ? styles.activeButton : ""
                     }`}
                     startIcon={item.icon}
+                    sx={{ display: item.showBtn ? "inline-flex" : "none" }}
                   >
                     {item.name}
                   </Button>
                 </Link>
               ))}
+
               {isCustomer ? (
                 <Box
                   sx={{
