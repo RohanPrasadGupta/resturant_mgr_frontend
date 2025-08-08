@@ -247,7 +247,7 @@ const Navbar = () => {
         <Link href="/signin" className={styles.mobileLink}>
           <ListItem
             className={isActive("/signin") ? styles.activeItem : ""}
-            onClick={handleDrawerToggle}
+            onClick={() => setSignInClicked(true)}
           >
             <Box className={styles.listItemContent}>
               <PersonIcon />
