@@ -23,17 +23,18 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import styles from "./ItemCardStyle.module.scss";
 import classNames from "classnames";
 import { useSelector } from "react-redux";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 
 const ItemCard = ({ data }) => {
   const { name, description, price, category, image, available } = data;
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(0);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const userData = useSelector((state) => state.selectedUser.value);
   const [localStorageData, setLocalStorageData] = useState(null);
   const [username, setUsername] = useState("");
   const [updateTimeout, setUpdateTimeout] = useState(null);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const storedData =
@@ -126,8 +127,8 @@ const ItemCard = ({ data }) => {
       return response.json();
     },
     onSuccess: (data) => {
-      // console.log("Order added successfully:", data);
       setIsAddedToCart(true);
+      queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
     },
     onError: () => {
       toast.error("Error adding item.");
@@ -163,20 +164,27 @@ const ItemCard = ({ data }) => {
       queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
     },
     onError: () => {
-      // console.error("Error updating item quantity.", error.message);
       toast.error("Error updating item.");
     },
   });
+
+  useEffect(() => {
+    if (tableNumber) {
+      refetch();
+    }
+  }, [tableNumber, refetch]);
 
   useEffect(() => {
     if (tableInfo?.currentOrder?.items) {
       const itemInCart = tableInfo.currentOrder.items.find(
         (item) => item?.menuItem?._id === data?._id
       );
-
       if (itemInCart) {
         setQuantity(itemInCart?.quantity);
         setIsAddedToCart(true);
+      } else {
+        setIsAddedToCart(false);
+        setQuantity(1);
       }
     }
   }, [tableInfo, data]);
@@ -190,12 +198,19 @@ const ItemCard = ({ data }) => {
     }
 
     const timeout = setTimeout(() => {
-      const updatedItemID = tableInfo?.currentOrder?.items.find(
-        (item) => item?.menuItem?._id === data?._id
-      );
-      handleUpdateQty({
-        menuItemId: updatedItemID?.menuItem?._id,
-        updatedQuantity,
+      refetch().then(() => {
+        const updatedItemID = tableInfo?.currentOrder?.items.find(
+          (item) => item?.menuItem?._id === data?._id
+        );
+        if (updatedItemID) {
+          handleUpdateQty({
+            menuItemId: updatedItemID?.menuItem?._id,
+            updatedQuantity,
+          });
+        } else {
+          toast.error("Item not found in the cart. Please try again.");
+          queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+        }
       });
     }, 2000);
 
@@ -211,12 +226,19 @@ const ItemCard = ({ data }) => {
     }
 
     const timeout = setTimeout(() => {
-      const updatedItemID = tableInfo?.currentOrder?.items.find(
-        (item) => item?.menuItem?._id === data?._id
-      );
-      handleUpdateQty({
-        menuItemId: updatedItemID?.menuItem?._id,
-        updatedQuantity,
+      refetch().then(() => {
+        const updatedItemID = tableInfo?.currentOrder?.items.find(
+          (item) => item?.menuItem?._id === data?._id
+        );
+        if (updatedItemID) {
+          handleUpdateQty({
+            menuItemId: updatedItemID?.menuItem?._id,
+            updatedQuantity,
+          });
+        } else {
+          toast.error("Item not found in the cart. Please try again.");
+          queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+        }
       });
     }, 2000);
 
@@ -233,14 +255,21 @@ const ItemCard = ({ data }) => {
       }
 
       const timeout = setTimeout(() => {
-        const updatedItemID = tableInfo?.currentOrder?.items.find(
-          (item) => item?.menuItem?._id === data?._id
-        );
-        handleUpdateQty({
-          menuItemId: updatedItemID?.menuItem?._id,
-          updatedQuantity: value,
+        refetch().then(() => {
+          const updatedItemID = tableInfo?.currentOrder?.items.find(
+            (item) => item?.menuItem?._id === data?._id
+          );
+          if (updatedItemID) {
+            handleUpdateQty({
+              menuItemId: updatedItemID?.menuItem?._id,
+              updatedQuantity: value,
+            });
+          } else {
+            toast.error("Item not found in the cart. Please try again.");
+            queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+          }
         });
-      }, 2000); // Wait for 2 seconds before updating
+      }, 2000);
 
       setUpdateTimeout(timeout);
     }
@@ -263,8 +292,51 @@ const ItemCard = ({ data }) => {
 
   const handleRemoveFromCart = () => {
     setIsAddedToCart(false);
-    setQuantity(1);
+    setQuantity(0);
+    deleteFunc();
   };
+
+  const { mutate: deleteFunc, isPending: isDeleting } = useMutation({
+    mutationFn: async () => {
+      const updatedItemID = tableInfo?.currentOrder?.items.find(
+        (item) => item?.menuItem?._id === data?._id
+      );
+
+      if (!updatedItemID) {
+        throw new Error("Item not found in the current order.");
+      }
+
+      const response = await fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order/${tableInfo?.currentOrder?._id}/remove-item`
+          : `${process.env.PROD_BACKEDN}/api/order/${tableInfo?.currentOrder?._id}/remove-item`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            menuItemId: updatedItemID?.menuItem?._id,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to delete item from the order.");
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast.success("Item removed successfully.");
+      queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+    },
+    onError: (error) => {
+      console.error("Error deleting item:", error.message);
+      toast.error("Error removing item from the cart.");
+    },
+  });
 
   return (
     <Card
@@ -283,22 +355,6 @@ const ItemCard = ({ data }) => {
             [styles.nonVegetarian]: category !== "vegetarian",
           })}
         />
-
-        {isAddedToCart && (
-          <Badge
-            badgeContent={quantity}
-            color="primary"
-            className={styles.quantityBadge}
-            max={99}
-          >
-            <Chip
-              icon={<ShoppingCartIcon fontSize="small" />}
-              label="In Cart"
-              size="small"
-              className={styles.inCartChip}
-            />
-          </Badge>
-        )}
 
         <CardMedia
           component="img"

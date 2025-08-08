@@ -54,7 +54,9 @@ const page = () => {
 
   const deleteItemOrder = async (itemId) => {
     const response = await axios.put(
-      `http://localhost:5000/api/order/${ordersID}/remove-item`,
+      process.env.NODE_ENV === "development"
+        ? `${process.env.LOCAL_BACKEND}/api/order/${ordersID}/remove-item`
+        : `${process.env.PROD_BACKEDN}/api/order/${ordersID}/remove-item`,
       {
         menuItemId: itemId,
       },
