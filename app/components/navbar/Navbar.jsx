@@ -66,6 +66,11 @@ const Navbar = () => {
 
   const isAdmin = userData?.username === "admin";
 
+  useEffect(() => {
+    console.log("isAdmin", isAdmin);
+    console.log("isStaff", isStaff);
+  }, [isAdmin, isStaff]);
+
   const isActive = (path) => pathname === path;
 
   const {
@@ -165,23 +170,88 @@ const Navbar = () => {
       className={styles.drawerContainer}
       onClick={(e) => e.stopPropagation()}
     >
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: "12px 16px",
+        }}
+      >
+        {isStaff ? (
+          <Button
+            variant="contained"
+            color="primary"
+            className={`${styles.signInButton} `}
+            startIcon={<PersonIcon />}
+            onClick={handleLogoutClick}
+          >
+            Log Out
+          </Button>
+        ) : (
+          <Button
+            variant="contained"
+            color="primary"
+            className={`${styles.signInButton} ${
+              isActive("/signin") ? styles.activeSignInButton : ""
+            }`}
+            startIcon={<PersonIcon />}
+            onClick={() => setSignInClicked(true)}
+          >
+            Sign In
+          </Button>
+        )}
+      </Box>
       <List>
-        {navItems.map((item) => (
-          <Link href={item.path} key={item.name} className={styles.mobileLink}>
+        <Link href="/pages/home" className={styles.mobileLink}>
+          <ListItem
+            className={isActive("/pages/home") ? styles.activeItem : ""}
+            onClick={handleDrawerToggle}
+          >
+            <Box className={styles.listItemContent}>
+              <HomeIcon />
+              <ListItemText primary="Home" className={styles.listItemText} />
+            </Box>
+          </ListItem>
+        </Link>
+
+        {userData?.username && (
+          <Link
+            href={isStaff ? "/pages/allOrder" : "/pages/order"}
+            className={styles.mobileLink}
+          >
             <ListItem
-              className={isActive(item.path) ? styles.activeItem : ""}
+              className={
+                isActive(isStaff ? "/pages/allOrder" : "/pages/order")
+                  ? styles.activeItem
+                  : ""
+              }
               onClick={handleDrawerToggle}
             >
               <Box className={styles.listItemContent}>
-                {item.icon}
+                <ShoppingBagIcon />
                 <ListItemText
-                  primary={item.name}
+                  primary="Orders"
                   className={styles.listItemText}
                 />
               </Box>
             </ListItem>
           </Link>
-        ))}
+        )}
+
+        {isAdmin && (
+          <Link href="/pages/admin" className={styles.mobileLink}>
+            <ListItem
+              className={isActive("/pages/admin") ? styles.activeItem : ""}
+              onClick={handleDrawerToggle}
+            >
+              <Box className={styles.listItemContent}>
+                <AdminPanelSettingsIcon />
+                <ListItemText primary="Admin" className={styles.listItemText} />
+              </Box>
+            </ListItem>
+          </Link>
+        )}
 
         <ListItem>
           <Box className={styles.mobileTableSelect}>
@@ -189,49 +259,52 @@ const Navbar = () => {
               <div className={styles.customerName}>{userData.tableNumber}</div>
             ) : (
               <>
-                <FormControl fullWidth variant="outlined" size="small">
-                  <InputLabel
-                    id="mobile-table-select-label"
-                    className={styles.tableSelectLabel}
+                {isStaff && tables?.length > 0 && (
+                  <FormControl
+                    variant="outlined"
+                    size="small"
+                    className={styles.tableSelectContainer}
+                    error={isError}
                   >
-                    Select Table
-                  </InputLabel>
-                  <Select
-                    labelId="mobile-table-select-label"
-                    value={userData.tableNumber}
-                    onChange={handleTableChange}
-                    label="Select Table"
-                    className={styles.mobileTableSelectInput}
-                    startAdornment={
-                      <TableRestaurantIcon className={styles.tableIcon} />
-                    }
-                    disabled={isLoading}
-                  >
-                    <MenuItem value="">
-                      <em>None</em>
-                    </MenuItem>
-                    {Array.isArray(tables) && isStaff
-                      ? tables.map((table) => (
-                          <MenuItem
-                            key={table._id}
-                            value={table._id}
-                            disabled={table.status !== "available"}
-                          >
-                            {table.number}{" "}
-                            {table.status !== "available" && (
-                              <FiberManualRecordIcon
-                                sx={{
-                                  color: "green",
-                                  fontSize: 12,
-                                  ml: 0.5,
-                                }}
-                              />
-                            )}
-                          </MenuItem>
-                        ))
-                      : null}
-                  </Select>
-                </FormControl>
+                    <InputLabel
+                      id="table-select-label"
+                      className={styles.tableSelectLabel}
+                    >
+                      Table
+                    </InputLabel>
+                    <Select
+                      labelId="table-select-label"
+                      value={userData.tableNumber}
+                      onChange={handleTableChange}
+                      label="Table"
+                      className={styles.tableSelect}
+                      startAdornment={
+                        <TableRestaurantIcon className={styles.tableIcon} />
+                      }
+                      disabled={isLoading}
+                    >
+                      <MenuItem value="">
+                        <em>Select Table</em>
+                      </MenuItem>
+                      {Array.isArray(tables) && isStaff
+                        ? tables.map((table) => (
+                            <MenuItem key={table._id} value={table.number}>
+                              {table.number}{" "}
+                              {table.status !== "available" && (
+                                <FiberManualRecordIcon
+                                  sx={{
+                                    color: "green",
+                                    fontSize: 12,
+                                    ml: 0.5,
+                                  }}
+                                />
+                              )}
+                            </MenuItem>
+                          ))
+                        : null}
+                    </Select>
+                  </FormControl>
+                )}
                 {isLoading && (
                   <CircularProgress
                     size={20}
@@ -242,19 +315,6 @@ const Navbar = () => {
             )}
           </Box>
         </ListItem>
-
-        <Divider className={styles.divider} />
-        <Link href="/signin" className={styles.mobileLink}>
-          <ListItem
-            className={isActive("/signin") ? styles.activeItem : ""}
-            onClick={() => setSignInClicked(true)}
-          >
-            <Box className={styles.listItemContent}>
-              <PersonIcon />
-              <ListItemText primary="Sign In" className={styles.listItemText} />
-            </Box>
-          </ListItem>
-        </Link>
       </List>
     </Box>
   );
