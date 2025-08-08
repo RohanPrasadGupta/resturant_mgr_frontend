@@ -57,7 +57,9 @@ const OrderPage = () => {
         throw new Error("No table number available");
       }
       return fetch(
-        `https://resturant-mgr-backend.onrender.com/api/order/table-number/${tableNumber}`
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/order/table-number/${tableNumber}`
+          : `${process.env.PROD_BACKEDN}/api/order/table-number/${tableNumber}`
       ).then((res) => {
         if (!res.ok) {
           throw new Error("Failed to fetch order data");
@@ -69,14 +71,6 @@ const OrderPage = () => {
     retry: 1,
     staleTime: 30000,
   });
-
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "production") {
-      console.log("Current table number:", tableNumber);
-      console.log("Order data:", data);
-      console.log("Order error:", error);
-    }
-  }, [tableNumber, data, error]);
 
   if (isLoading || dataLoading) return <LoaderComp />;
 

@@ -12,7 +12,6 @@
   position: relative;
   overflow-x: hidden;
 
-  // Make the container take the full width available
   &::before {
     content: "";
     position: absolute;
@@ -231,7 +230,6 @@
   }
 }
 
-// Extra small devices (portrait phones)
 @media (max-width: 575.98px) {
   .homepageContainer {
     padding-top: 16px;
@@ -277,7 +275,6 @@
   }
 }
 
-// Small devices (landscape phones)
 @media (min-width: 576px) and (max-width: 767.98px) {
   .mainTitle {
     font-size: 2rem !important;
@@ -293,7 +290,6 @@
   }
 }
 
-// Medium devices (tablets)
 @media (min-width: 768px) and (max-width: 991.98px) {
   .homepageContainer {
     padding-top: 24px;
@@ -309,7 +305,6 @@
   }
 }
 
-// Large devices (desktops)
 @media (min-width: 992px) and (max-width: 1199.98px) {
   .headerSection {
     margin-bottom: 48px;
@@ -324,7 +319,6 @@
   }
 }
 
-// Extra large devices
 @media (min-width: 1200px) and (max-width: 1399.98px) {
   .homepageContainer {
     padding-top: 48px;
@@ -348,7 +342,6 @@
   }
 }
 
-// XXL screens
 @media (min-width: 1400px) {
   .homepageContainer {
     padding-top: 56px;
