@@ -18,8 +18,10 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Tooltip,
   CircularProgress,
   Dialog,
+  DialogTitle,
   DialogContent,
   DialogContentText,
   DialogActions,
@@ -28,7 +30,6 @@ import MenuIcon from "@mui/icons-material/Menu";
 import HomeIcon from "@mui/icons-material/Home";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 import PersonIcon from "@mui/icons-material/Person";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -45,7 +46,6 @@ import SignIn from "../signIn/SignIn";
 import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
-import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -57,14 +57,11 @@ const Navbar = () => {
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
-  const router = useRouter();
 
   const isCustomer = userData?.username === "customer";
 
   const isStaff =
     userData?.username === "staff" || userData?.username === "admin";
-
-  const isAdmin = userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
 
@@ -79,13 +76,8 @@ const Navbar = () => {
       fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/tables`
-          : `${process.env.PROD_BACKEDN}/api/tables`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
+          : `${process.env.PROD_BACKEDN}/api/tables`
       ).then((res) => res.json()),
-    enabled: isStaff,
   });
 
   const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
@@ -145,18 +137,11 @@ const Navbar = () => {
   };
 
   const navItems = [
-    { name: "Home", path: "/pages/home", icon: <HomeIcon />, showBtn: true },
+    { name: "Home", path: "/pages/home", icon: <HomeIcon /> },
     {
       name: "Orders",
       path: isStaff ? "/pages/allOrder" : "/pages/order",
       icon: <ShoppingBagIcon />,
-      showBtn: true,
-    },
-    {
-      name: "Admin",
-      path: isAdmin ? "/pages/admin" : "/pages/home",
-      icon: <AdminPanelSettingsIcon />,
-      showBtn: isAdmin ? true : false,
     },
   ];
 
@@ -210,26 +195,17 @@ const Navbar = () => {
                     <MenuItem value="">
                       <em>None</em>
                     </MenuItem>
-                    {Array.isArray(tables) && isStaff
-                      ? tables.map((table) => (
-                          <MenuItem
-                            key={table._id}
-                            value={table._id}
-                            disabled={table.status !== "available"}
-                          >
-                            {table.number}{" "}
-                            {table.status !== "available" && (
-                              <FiberManualRecordIcon
-                                sx={{
-                                  color: "green",
-                                  fontSize: 12,
-                                  ml: 0.5,
-                                }}
-                              />
-                            )}
-                          </MenuItem>
-                        ))
-                      : null}
+                    {tables &&
+                      tables.map((table) => (
+                        <MenuItem
+                          key={table._id}
+                          value={table._id}
+                          disabled={table.status !== "available"}
+                        >
+                          {table.number}{" "}
+                          {table.status !== "available" && `(${table.status})`}
+                        </MenuItem>
+                      ))}
                   </Select>
                 </FormControl>
                 {isLoading && (
@@ -260,200 +236,191 @@ const Navbar = () => {
   );
 
   return (
-    <AppBar position="sticky" className={styles.appBar}>
-      <Toolbar className={styles.toolbar}>
-        <Link href="/pages/home" className={styles.brandLink}>
-          <Typography variant="h6" className={styles.brand}>
-            Spice Haven
-          </Typography>
-        </Link>
+    <>
+      <AppBar position="sticky" className={styles.appBar}>
+        <Toolbar className={styles.toolbar}>
+          <Link href="/pages/home" className={styles.brandLink}>
+            <Typography variant="h6" className={styles.brand}>
+              Spice Haven
+            </Typography>
+          </Link>
 
-        <Box className={styles.navSection}>
-          {!isMobile && (
-            <Box className={styles.tableSelectWrapper}>
-              {isCustomer ? (
-                <Box className={styles.customerTableDisplay}>
-                  <TableRestaurantIcon className={styles.tableIcon} />
-                  <Typography variant="body2">
-                    Table: {userData.tableNumber || "Not selected"}
-                  </Typography>
-                </Box>
-              ) : (
-                <>
-                  {isStaff && tables?.length > 0 && (
-                    <FormControl
-                      variant="outlined"
-                      size="small"
-                      className={styles.tableSelectContainer}
-                      error={isError}
-                    >
-                      <InputLabel
-                        id="table-select-label"
-                        className={styles.tableSelectLabel}
+          <Box className={styles.navSection}>
+            {!isMobile && (
+              <Box className={styles.tableSelectWrapper}>
+                {isCustomer ? (
+                  <Box className={styles.customerTableDisplay}>
+                    <TableRestaurantIcon className={styles.tableIcon} />
+                    <Typography variant="body2">
+                      Table: {userData.tableNumber || "Not selected"}
+                    </Typography>
+                  </Box>
+                ) : (
+                  <>
+                    {isStaff && (
+                      <FormControl
+                        variant="outlined"
+                        size="small"
+                        className={styles.tableSelectContainer}
+                        error={isError}
                       >
-                        Table
-                      </InputLabel>
-                      <Select
-                        labelId="table-select-label"
-                        value={userData.tableNumber}
-                        onChange={handleTableChange}
-                        label="Table"
-                        className={styles.tableSelect}
-                        startAdornment={
-                          <TableRestaurantIcon className={styles.tableIcon} />
-                        }
-                        disabled={isLoading}
-                      >
-                        <MenuItem value="">
-                          <em>Select Table</em>
-                        </MenuItem>
-                        {Array.isArray(tables) && isStaff
-                          ? tables.map((table) => (
+                        <InputLabel
+                          id="table-select-label"
+                          className={styles.tableSelectLabel}
+                        >
+                          Table
+                        </InputLabel>
+                        <Select
+                          labelId="table-select-label"
+                          value={userData.tableNumber}
+                          onChange={handleTableChange}
+                          label="Table"
+                          className={styles.tableSelect}
+                          startAdornment={
+                            <TableRestaurantIcon className={styles.tableIcon} />
+                          }
+                          disabled={isLoading}
+                        >
+                          <MenuItem value="">
+                            <em>Select Table</em>
+                          </MenuItem>
+                          {tables &&
+                            tables.map((table) => (
                               <MenuItem key={table._id} value={table.number}>
                                 {table.number}{" "}
-                                {table.status !== "available" && (
-                                  <FiberManualRecordIcon
-                                    sx={{
-                                      color: "green",
-                                      fontSize: 12,
-                                      ml: 0.5,
-                                    }}
-                                  />
-                                )}
+                                {table.status !== "available" &&
+                                  `(${table.status})`}
                               </MenuItem>
-                            ))
-                          : null}
-                      </Select>
-                    </FormControl>
-                  )}
-                </>
-              )}
+                            ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  </>
+                )}
 
-              {isLoading && (
-                <CircularProgress
-                  size={20}
-                  className={styles.tableSelectLoader}
-                />
-              )}
-            </Box>
-          )}
+                {isLoading && (
+                  <CircularProgress
+                    size={20}
+                    className={styles.tableSelectLoader}
+                  />
+                )}
+              </Box>
+            )}
 
-          {isMobile ? (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              className={styles.menuButton}
-            >
-              <MenuIcon />
-            </IconButton>
-          ) : (
-            <Box className={styles.desktopMenu}>
-              {navItems.map((item) => (
-                <Link
-                  href={item.path}
-                  key={item.name}
-                  className={styles.navLink}
-                >
-                  <Button
-                    color="inherit"
-                    className={`${styles.navButton} ${
-                      isActive(item.path) ? styles.activeButton : ""
-                    }`}
-                    startIcon={item.icon}
-                    sx={{ display: item.showBtn ? "inline-flex" : "none" }}
+            {isMobile ? (
+              <IconButton
+                color="inherit"
+                aria-label="open drawer"
+                edge="start"
+                onClick={handleDrawerToggle}
+                className={styles.menuButton}
+              >
+                <MenuIcon />
+              </IconButton>
+            ) : (
+              <Box className={styles.desktopMenu}>
+                {navItems.map((item) => (
+                  <Link
+                    href={item.path}
+                    key={item.name}
+                    className={styles.navLink}
                   >
-                    {item.name}
-                  </Button>
-                </Link>
-              ))}
-
-              {isCustomer ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    alignItems: "center",
-                    cursor: "pointer",
-                  }}
-                >
-                  <AccountCircleIcon />
-                </Box>
-              ) : (
-                <>
-                  {isStaff ? (
-                    <Box
-                      sx={{
-                        display: "flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                      }}
-                      onClick={handleLogoutClick}
-                    >
-                      <AccountCircleIcon />
-                    </Box>
-                  ) : (
                     <Button
-                      variant="contained"
-                      color="primary"
-                      className={`${styles.signInButton} ${
-                        isActive("/signin") ? styles.activeSignInButton : ""
+                      color="inherit"
+                      className={`${styles.navButton} ${
+                        isActive(item.path) ? styles.activeButton : ""
                       }`}
-                      startIcon={<PersonIcon />}
-                      onClick={() => setSignInClicked(true)}
+                      startIcon={item.icon}
                     >
-                      Sign In
+                      {item.name}
                     </Button>
-                  )}
-                </>
-              )}
-            </Box>
-          )}
-        </Box>
-      </Toolbar>
+                  </Link>
+                ))}
+                {isCustomer ? (
+                  <Box
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
+                  >
+                    <AccountCircleIcon />
+                  </Box>
+                ) : (
+                  <>
+                    {isStaff ? (
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          cursor: "pointer",
+                        }}
+                        onClick={handleLogoutClick}
+                      >
+                        <AccountCircleIcon />
+                      </Box>
+                    ) : (
+                      <Button
+                        variant="contained"
+                        color="primary"
+                        className={`${styles.signInButton} ${
+                          isActive("/signin") ? styles.activeSignInButton : ""
+                        }`}
+                        startIcon={<PersonIcon />}
+                        onClick={() => setSignInClicked(true)}
+                      >
+                        Sign In
+                      </Button>
+                    )}
+                  </>
+                )}
+              </Box>
+            )}
+          </Box>
+        </Toolbar>
 
-      <Dialog
-        open={logoutDialogOpen}
-        onClose={handleCancelLogout}
-        aria-labelledby="logout-dialog-title"
-        aria-describedby="logout-dialog-description"
-      >
-        <DialogContent>
-          <DialogContentText id="logout-dialog-description">
-            Are you sure you want to log out?
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCancelLogout} color="primary">
-            Cancel
-          </Button>
-          <Button
-            onClick={handleConfirmLogout}
-            color="primary"
-            variant="contained"
-            autoFocus
-            sx={{
-              backgroundColor: "#ff9800",
-            }}
-          >
-            Logout
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog
+          open={logoutDialogOpen}
+          onClose={handleCancelLogout}
+          aria-labelledby="logout-dialog-title"
+          aria-describedby="logout-dialog-description"
+        >
+          <DialogContent>
+            <DialogContentText id="logout-dialog-description">
+              Are you sure you want to log out?
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCancelLogout} color="primary">
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmLogout}
+              color="primary"
+              variant="contained"
+              autoFocus
+              sx={{
+                backgroundColor: "#ff9800",
+              }}
+            >
+              Logout
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Drawer
-        variant="temporary"
-        anchor="right"
-        open={drawerOpen}
-        onClose={handleDrawerToggle}
-        className={styles.drawer}
-        ModalProps={{
-          keepMounted: true,
-        }}
-      >
-        {drawer}
-      </Drawer>
-
+        <Drawer
+          variant="temporary"
+          anchor="right"
+          open={drawerOpen}
+          onClose={handleDrawerToggle}
+          className={styles.drawer}
+          ModalProps={{
+            keepMounted: true,
+          }}
+        >
+          {drawer}
+        </Drawer>
+      </AppBar>
       {signInClicked && (
         <Modal
           open={signInClicked}
@@ -465,7 +432,7 @@ const Navbar = () => {
           </Box>
         </Modal>
       )}
-    </AppBar>
+    </>
   );
 };
 
