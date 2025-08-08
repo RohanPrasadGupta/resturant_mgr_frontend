@@ -28,7 +28,7 @@ import toast from "react-hot-toast";
 
 const ItemCard = ({ data }) => {
   const { name, description, price, category, image, available } = data;
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
   const [isAddedToCart, setIsAddedToCart] = useState(false);
   const userData = useSelector((state) => state.selectedUser.value);
   const [localStorageData, setLocalStorageData] = useState(null);
@@ -76,6 +76,9 @@ const ItemCard = ({ data }) => {
           : `${process.env.PROD_BACKEDN}/api/table/${tableNumber}`,
         {
           method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
           credentials: "include",
         }
       ).then((res) => {

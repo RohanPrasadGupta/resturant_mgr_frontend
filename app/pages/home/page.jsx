@@ -22,8 +22,6 @@ import styles from "./homepageStyle.module.scss";
 const Homepage = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
-
   const [activeCategory, setActiveCategory] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [isFiltering, setIsFiltering] = useState(false);
@@ -42,14 +40,12 @@ const Homepage = () => {
     ).then((res) => res.json());
   }
 
-  // Get unique categories from data
   const getCategories = () => {
     if (!data) return [];
     const categories = data.map((item) => item.category);
     return ["all", ...new Set(categories)];
   };
 
-  // Filter items based on category and search term
   const getFilteredItems = () => {
     if (!data) return [];
     return data.filter((item) => {
@@ -72,21 +68,17 @@ const Homepage = () => {
     setSearchTerm(event.target.value);
   };
 
-  // Apply animation when data changes
   useEffect(() => {
     const filteredItems = getFilteredItems();
 
     if (isFiltering) {
-      // Show loading state for a short time
       const timer = setTimeout(() => {
         setIsFiltering(false);
-        // Set all items at once when filtering is done
         setVisibleItems(filteredItems);
       }, 600);
 
       return () => clearTimeout(timer);
     } else if (!isFiltering && data) {
-      // Initial data load
       setVisibleItems(filteredItems);
     }
   }, [data, isFiltering, activeCategory, searchTerm]);
@@ -101,8 +93,6 @@ const Homepage = () => {
         <Typography>{error.message}</Typography>
       </Container>
     );
-
-  const gridColumns = isMobile ? 1 : isTablet ? 2 : 3;
 
   return (
     <Container

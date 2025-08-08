@@ -9,21 +9,21 @@ import axios from "axios";
 import toast from "react-hot-toast";
 
 const page = () => {
-  const userData = useSelector((state) => state.selectedUser.value);
+  // const userData = useSelector((state) => state.selectedUser.value);
+  // const [localStorageData, setLocalStorageData] = useState(null);
   const queryClient = useQueryClient();
-  const [localStorageData, setLocalStorageData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [ordersID, setOrdersID] = useState("");
 
-  useEffect(() => {
-    const storedData =
-      typeof window !== "undefined"
-        ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
-        : null;
+  // useEffect(() => {
+  //   const storedData =
+  //     typeof window !== "undefined"
+  //       ? JSON.parse(localStorage.getItem("mgrUserData") || "null")
+  //       : null;
 
-    setLocalStorageData(storedData);
-    setIsLoading(false);
-  }, []);
+  //   setLocalStorageData(storedData);
+  //   setIsLoading(false);
+  // }, []);
 
   const getOrder = async () => {
     const response = await axios.get(
@@ -170,10 +170,6 @@ const page = () => {
     deleteItemMutation.mutate(itemId);
   };
 
-  // useEffect(() => {
-  //   console.log("data", data);
-  // }, [data]);
-
   if (dataLoading || isLoading) return <LoaderComp />;
 
   if (error) {
@@ -181,7 +177,7 @@ const page = () => {
       <Box
         sx={{
           width: "100%",
-          height: "100vh",
+          height: "95vh",
           backgroundColor: "#f5f5f5",
           display: "flex",
           justifyContent: "center",

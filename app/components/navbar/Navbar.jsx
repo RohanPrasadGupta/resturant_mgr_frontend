@@ -78,9 +78,18 @@ const Navbar = () => {
       fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/tables`
-          : `${process.env.PROD_BACKEDN}/api/tables`
+          : `${process.env.PROD_BACKEDN}/api/tables`,
+        {
+          method: "GET",
+          credentials: "include",
+        }
       ).then((res) => res.json()),
   });
+
+  useEffect(() => {
+    console.log("Tables data:", tables);
+    console.log("error error:", error);
+  }, [tables]);
 
   const { mutate: logoutUser, isPending: isLogoutLoading } = useMutation({
     mutationFn: () =>
@@ -204,17 +213,19 @@ const Navbar = () => {
                     <MenuItem value="">
                       <em>None</em>
                     </MenuItem>
-                    {tables &&
-                      tables.map((table) => (
-                        <MenuItem
-                          key={table._id}
-                          value={table._id}
-                          disabled={table.status !== "available"}
-                        >
-                          {table.number}{" "}
-                          {table.status !== "available" && `(${table.status})`}
-                        </MenuItem>
-                      ))}
+                    {Array.isArray(tables) && isStaff
+                      ? tables.map((table) => (
+                          <MenuItem
+                            key={table._id}
+                            value={table._id}
+                            disabled={table.status !== "available"}
+                          >
+                            {table.number}{" "}
+                            {table.status !== "available" &&
+                              `(${table.status})`}
+                          </MenuItem>
+                        ))
+                      : null}
                   </Select>
                 </FormControl>
                 {isLoading && (
@@ -265,7 +276,7 @@ const Navbar = () => {
                 </Box>
               ) : (
                 <>
-                  {isStaff && (
+                  {isStaff && tables?.length > 0 && (
                     <FormControl
                       variant="outlined"
                       size="small"
@@ -292,14 +303,15 @@ const Navbar = () => {
                         <MenuItem value="">
                           <em>Select Table</em>
                         </MenuItem>
-                        {tables &&
-                          tables.map((table) => (
-                            <MenuItem key={table._id} value={table.number}>
-                              {table.number}{" "}
-                              {table.status !== "available" &&
-                                `(${table.status})`}
-                            </MenuItem>
-                          ))}
+                        {Array.isArray(tables) && isStaff
+                          ? tables.map((table) => (
+                              <MenuItem key={table._id} value={table.number}>
+                                {table.number}{" "}
+                                {table.status !== "available" &&
+                                  `(${table.status})`}
+                              </MenuItem>
+                            ))
+                          : null}
                       </Select>
                     </FormControl>
                   )}
