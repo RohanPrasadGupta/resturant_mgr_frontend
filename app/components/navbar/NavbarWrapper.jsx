@@ -10,7 +10,7 @@ const NavbarWrapper = () => {
         <div
           style={{
             height: "64px",
-            background: "#1976d2",
+            background: "#ffffff",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
