@@ -213,12 +213,14 @@ While no explicit test suite is included yet, recommended next steps:
 ## 📷 UI Previews
 
 <p align="center">
-  <img width="800" src="https://github.com/user-attachments/assets/137c400a-b59e-4259-a939-9ed10a22965c" />
   <img width="800" src="https://github.com/user-attachments/assets/9112812f-dbe8-41c2-a5fb-1ba35395bf6b" />
-  <img width="800" src="https://github.com/user-attachments/assets/f507c5e9-6ca6-4472-868c-464e230fd90b" />
+<img width="1910" height="662" alt="7" src="https://github.com/user-attachments/assets/4ddf44ec-fefd-4fe9-a684-2917baf35c38" />
+<img width="1908" height="945" alt="8" src="https://github.com/user-attachments/assets/dc2617a6-6cce-4721-a12c-0ce2c5d4d23b" />
+ <img width="800" src="https://github.com/user-attachments/assets/f507c5e9-6ca6-4472-868c-464e230fd90b" />
   <img width="800" src="https://github.com/user-attachments/assets/593634b9-77ba-45f4-b3e1-964c34aa5af7" />
   <img width="800" src="https://github.com/user-attachments/assets/fa3074f1-be2b-4715-804d-5dc8cbe32da0" />
   <img width="800" src="https://github.com/user-attachments/assets/cc111af6-f815-4272-9776-8c48cbe14958" />
+  <img width="800" src="https://github.com/user-attachments/assets/137c400a-b59e-4259-a939-9ed10a22965c" />
 </p>
 
 ---
