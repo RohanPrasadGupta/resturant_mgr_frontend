@@ -6,6 +6,8 @@
   overflow: hidden;
   border-radius: 12px !important;
   background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
 
   html[data-theme="dark"] & {
     background-color: #1e1e1e;
@@ -91,6 +93,9 @@
 
 .cardContent {
   padding: 16px !important;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
@@ -99,6 +104,7 @@
   margin-bottom: 8px !important;
   color: #333;
   letter-spacing: 0.3px;
+  min-height: 24px; /* reserve space for single line */
   html[data-theme="dark"] & {
     color: #f1f1f1;
   }
@@ -111,7 +117,7 @@
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
-  min-height: 40px;
+  min-height: 40px; /* space for two lines */
   color: #666 !important;
   font-size: 0.9rem !important;
   html[data-theme="dark"] & {
@@ -125,6 +131,7 @@
   justify-content: space-between;
   padding: 0 16px 16px !important;
   flex-wrap: wrap;
+  margin-top: auto; /* push actions to bottom */
 }
 
 .priceTypography {
