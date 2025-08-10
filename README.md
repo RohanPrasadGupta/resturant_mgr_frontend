@@ -40,9 +40,10 @@ A full-stack restaurant management system with real-time order handling, role-ba
 ---
 ## Some Previews
 ----
+<img width="1908" height="934" alt="admin2" src="https://github.com/user-attachments/assets/137c400a-b59e-4259-a939-9ed10a22965c" />
+<img width="1907" height="939" alt="6" src="https://github.com/user-attachments/assets/9112812f-dbe8-41c2-a5fb-1ba35395bf6b" />
+<img width="1905" height="941" alt="5" src="https://github.com/user-attachments/assets/f507c5e9-6ca6-4472-868c-464e230fd90b" />
+<img width="1908" height="939" alt="4" src="https://github.com/user-attachments/assets/593634b9-77ba-45f4-b3e1-964c34aa5af7" />
+<img width="1903" height="926" alt="3" src="https://github.com/user-attachments/assets/fa3074f1-be2b-4715-804d-5dc8cbe32da0" />
+<img width="1906" height="942" alt="Screenshot 2025-08-10 170340" src="https://github.com/user-attachments/assets/cc111af6-f815-4272-9776-8c48cbe14958" />
 
-![image](https://github.com/user-attachments/assets/61d6e1e9-313f-4d49-875d-5c46a81d301f)
-![image](https://github.com/user-attachments/assets/21971bea-11aa-425e-81ea-aff48c2064da)
-![image](https://github.com/user-attachments/assets/beb7736e-9065-4ee3-a253-79e616f3ec07)
-![image](https://github.com/user-attachments/assets/f9ba3d56-c965-4d08-a294-138481b85073)
-![image](https://github.com/user-attachments/assets/aa62a235-a4e0-4465-b350-dc2650c2143d)
