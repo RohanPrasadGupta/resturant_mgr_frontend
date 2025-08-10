@@ -470,8 +470,7 @@ const Navbar = () => {
         </Toolbar>
 
         <Dialog
-          // open={logoutDialogOpen}
-          open={true}
+          open={logoutDialogOpen}
           onClose={handleCancelLogout}
           aria-labelledby="logout-dialog-title"
           aria-describedby="logout-dialog-description"
