@@ -196,6 +196,13 @@
   letter-spacing: 0.5px !important;
   text-transform: none !important;
   transition: all 0.3s ease !important;
+  color: #ffffff !important; /* ensure white text */
+
+  /* force startIcon (cart) to be white */
+  svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+  }
 
   &:hover:not([disabled]) {
     box-shadow: 0 6px 14px rgba(255, 152, 0, 0.4) !important;

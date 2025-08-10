@@ -141,7 +141,11 @@ const SignIn = ({ handleClose }) => {
           className={styles.submitButton}
           disabled={isPending}
         >
-          {isPending ? <CircularProgress size={28} /> : " Sign In"}
+          {isPending ? (
+            <CircularProgress size={24} sx={{ color: "#fff" }} />
+          ) : (
+            "Sign In"
+          )}
         </Button>
       </form>
     </Paper>

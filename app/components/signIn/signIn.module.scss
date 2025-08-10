@@ -1,3 +1,4 @@
+/* Root container adapts to theme via CSS vars */
 .signInContainer {
   position: absolute;
   top: 50%;
@@ -6,21 +7,30 @@
   width: 100%;
   max-width: 400px;
   padding: 32px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  background-color: var(--bg-surface);
+  color: var(--foreground);
+  border-radius: 14px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+  transition: background-color 0.35s ease, color 0.35s ease,
+    box-shadow 0.35s ease;
 }
 
+html[data-theme="dark"] .signInContainer {
+  box-shadow: 0 10px 42px rgba(0, 0, 0, 0.6);
+  color-scheme: dark; /* helps form controls adopt dark appearance */
+}
+
+/* Close (X) button */
 .closeButton {
   position: absolute !important;
   top: 8px;
   right: 8px;
-  color: rgba(0, 0, 0, 0.5);
-  transition: color 0.2s ease;
+  color: var(--text-muted);
+  transition: color 0.25s ease, background-color 0.25s ease;
 
   &:hover {
-    color: rgba(0, 0, 0, 0.8);
-    background-color: rgba(0, 0, 0, 0.04);
+    color: var(--foreground);
+    background-color: rgba(255, 255, 255, 0.08);
   }
 }
 
@@ -31,6 +41,7 @@
   margin-bottom: 16px;
 }
 
+/* Icon circle */
 .iconWrapper {
   display: flex;
   align-items: center;
@@ -38,8 +49,13 @@
   width: 56px;
   height: 56px;
   margin-bottom: 16px;
-  background-color: #f5f5f5;
+  background-color: var(--bg-page);
   border-radius: 50%;
+  transition: background-color 0.35s ease;
+}
+
+html[data-theme="dark"] .iconWrapper {
+  background-color: #262626;
 }
 
 .lockIcon {
@@ -49,26 +65,165 @@
 
 .title {
   font-weight: 600;
-  color: #333;
+  color: var(--text-heading);
   margin-bottom: 8px;
+  transition: color 0.35s ease;
 }
 
 .form {
   width: 100%;
 }
 
+/* TextField wrapper for spacing */
 .textField {
   margin-bottom: 16px;
 }
 
+/* Field theming: override MUI input + borders for both modes */
+/* Base root */
+.textField :global(.MuiOutlinedInput-root) {
+  background: rgba(0, 0, 0, 0.03);
+  transition: background-color 0.3s ease, border-color 0.3s ease,
+    box-shadow 0.25s ease;
+  border-radius: 10px !important;
+}
+
+html[data-theme="dark"] .textField :global(.MuiOutlinedInput-root) {
+  background: #1f1f1f !important; /* solid dark surface */
+}
+
+/* Hover */
+.textField :global(.MuiOutlinedInput-root:hover) {
+  background: rgba(0, 0, 0, 0.05);
+}
+html[data-theme="dark"] .textField :global(.MuiOutlinedInput-root:hover) {
+  background: #262626 !important;
+}
+
+/* Outline default */
+.textField :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: rgba(0, 0, 0, 0.22);
+  transition: border-color 0.25s ease;
+}
+html[data-theme="dark"] .textField :global(.MuiOutlinedInput-notchedOutline) {
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+/* Hover outline */
+.textField
+  :global(.MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline) {
+  border-color: #ff9800 !important;
+}
+
+/* Focus outline + ring */
+.textField
+  :global(.MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline) {
+  border-color: #ff9800 !important;
+  box-shadow: 0 0 0 2px rgba(255, 152, 0, 0.28);
+}
+
+/* Focus background */
+.textField :global(.MuiOutlinedInput-root.Mui-focused) {
+  background: rgba(0, 0, 0, 0.06);
+}
+html[data-theme="dark"] .textField :global(.MuiOutlinedInput-root.Mui-focused) {
+  background: #2b2b2b !important;
+}
+
+/* Input text */
+.textField :global(input) {
+  color: var(--foreground) !important;
+  font-weight: 500;
+}
+html[data-theme="dark"] .textField :global(input) {
+  color: #ffffff !important;
+}
+
+/* Autofill text color fix */
+.textField :global(input:-webkit-autofill) {
+  -webkit-text-fill-color: var(--foreground) !important;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+html[data-theme="dark"] .textField :global(input:-webkit-autofill) {
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Remove default Chrome autofill background (blue) and enforce our theme */
+.textField :global(input:-webkit-autofill),
+.textField :global(input:-webkit-autofill:hover),
+.textField :global(input:-webkit-autofill:focus) {
+  box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.03) inset !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.03) inset !important;
+  caret-color: var(--foreground);
+}
+html[data-theme="dark"] .textField :global(input:-webkit-autofill),
+html[data-theme="dark"] .textField :global(input:-webkit-autofill:hover),
+html[data-theme="dark"] .textField :global(input:-webkit-autofill:focus) {
+  box-shadow: 0 0 0 1000px #1f1f1f inset !important;
+  -webkit-box-shadow: 0 0 0 1000px #1f1f1f inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+/* Placeholder (only visible if label shrinks) */
+.textField :global(input::placeholder) {
+  color: var(--text-muted) !important;
+  opacity: 0.7;
+}
+html[data-theme="dark"] .textField :global(input::placeholder) {
+  color: #cccccc !important;
+}
+
+/* Label */
+.textField :global(.MuiInputLabel-root) {
+  color: var(--text-muted) !important;
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+html[data-theme="dark"] .textField :global(.MuiInputLabel-root) {
+  color: #bbbbbb !important;
+}
+.textField :global(.MuiInputLabel-root.Mui-focused) {
+  color: #ff9800 !important;
+}
+
+/* Adornment/toggle icons */
+.textField :global(.MuiInputAdornment-root button),
+.textField :global(.MuiInputAdornment-root svg) {
+  color: var(--text-muted) !important;
+  transition: color 0.25s ease;
+}
+html[data-theme="dark"] .textField :global(.MuiInputAdornment-root button),
+html[data-theme="dark"] .textField :global(.MuiInputAdornment-root svg) {
+  color: #dddddd !important;
+}
+.textField :global(.MuiInputAdornment-root button:hover svg) {
+  color: #ff9800 !important;
+}
+
+/* Submit button (gradient already high contrast) */
 .submitButton {
   margin-top: 16px;
   padding: 12px;
   font-weight: 600;
   font-size: 16px;
   text-transform: none;
-  border-radius: 4px;
+  border-radius: 8px;
   background: linear-gradient(45deg, #ff9800, #ff5722);
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: box-shadow 0.3s ease, transform 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
+    transform: translateY(-2px);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
 }
 
 // Responsive adjustments

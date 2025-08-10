@@ -217,19 +217,26 @@ html[data-theme="dark"] .drawerContainer {
   letter-spacing: 0.5px !important;
   transition: all 0.2s ease !important;
   text-transform: none !important;
-  background-color: white !important;
-  color: #ff9800 !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
   margin-left: 8px !important;
   box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1) !important;
+  backdrop-filter: blur(3px);
+
+  svg {
+    color: #ffffff !important;
+    fill: #ffffff !important;
+    transition: color 0.2s ease;
+  }
 
   &:hover {
-    background-color: #f9f9f9 !important;
+    background: rgba(255, 255, 255, 0.28) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
   }
 
   &.activeSignInButton {
-    background-color: #f9f9f9 !important;
+    background: rgba(255, 255, 255, 0.32) !important;
     position: relative;
 
     &::after {
@@ -240,19 +247,18 @@ html[data-theme="dark"] .drawerContainer {
       transform: translateX(-50%);
       width: 20px;
       height: 3px;
-      background-color: #ff9800;
+      background-color: #ffffff;
       border-radius: 3px;
     }
   }
 }
-
+/* Dark mode uses same translucency; adjust shadow slightly */
 html[data-theme="dark"] .signInButton {
-  background-color: #2d2d2d !important;
-  color: #ffa726 !important;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5) !important;
+  background: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.55) !important;
 }
 html[data-theme="dark"] .signInButton:hover {
-  background-color: #3a3a3a !important;
+  background: rgba(255, 255, 255, 0.26) !important;
 }
 
 .adminButton {
