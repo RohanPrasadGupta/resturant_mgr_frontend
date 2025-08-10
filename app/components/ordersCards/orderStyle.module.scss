@@ -9,6 +9,8 @@
   overflow: hidden;
   padding: 24px;
   background-color: #fff;
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
@@ -153,6 +155,7 @@
   margin-bottom: 8px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -238,6 +241,7 @@
 
   .orderCard {
     padding: 16px;
+    border-radius: 16px;
   }
 
   .headerMain {
@@ -261,18 +265,85 @@
     gap: 12px;
   }
 
+  .itemsList {
+    gap: 12px;
+  }
+
+  .itemCard {
+    padding: 4px 0;
+  }
+
+  .itemLeft {
+    width: 100%;
+  }
+
+  .itemRight {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+    gap: 6px 12px;
+    align-items: start;
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+  }
+
+  .subtotal {
+    font-size: 0.95rem;
+  }
+
+  .summary {
+    margin-top: 24px;
+  }
+
+  .summary > div {
+    /* rows */
+    font-size: 0.9rem;
+  }
+
+  /* Stack summary action row buttons */
+
+  /* Extend styles to component structure: last action Box inside summary */
+  .summary > div:last-child {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+
+  .summary > div:last-child > div {
+    /* inner cluster (served, radios, checkout) */
+    flex-wrap: wrap;
+    width: 100%;
+    gap: 12px !important;
+    justify-content: flex-start;
+  }
+
+  .summary button {
+    min-width: 140px;
+  }
   .itemContent {
     padding: 8px;
   }
-
   .priceSection {
     margin-top: 12px;
     align-items: flex-start;
   }
-
   .quantityPrice {
     flex-direction: row;
     gap: 12px;
     align-items: center;
+  }
+}
+
+/* Slightly larger small/medium breakpoint improvements */
+@media (max-width: 840px) and (min-width: 601px) {
+  .itemContentRow {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+  .itemLeft {
+    flex: 1 1 auto;
+  }
+  .itemRight {
+    min-width: 140px;
   }
 }

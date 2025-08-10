@@ -1,5 +1,9 @@
 .styledCard {
-  min-width: 250px;
+  /* Uniform card width */
+  width: 260px;
+  max-width: 260px;
+  min-width: 260px;
+  flex: 0 0 260px;
   margin: 16px;
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   position: relative;
@@ -21,6 +25,16 @@
   &:not(.disabled):hover {
     transform: translateY(-6px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+/* Allow full width on narrow viewports */
+@media (max-width: 620px) {
+  .styledCard {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
   }
 }
 
