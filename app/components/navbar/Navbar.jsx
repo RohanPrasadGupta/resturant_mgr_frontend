@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   AppBar,
   Toolbar,
@@ -33,7 +33,7 @@ import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import styles from "./navbarStyle.module.scss";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSelector, useDispatch } from "react-redux";
 import {
   loginUserRedux,
@@ -47,6 +47,9 @@ import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import LogoutIcon from "@mui/icons-material/Logout";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import { ColorModeContext } from "../../theme/ColorModeContext";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -59,6 +62,8 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const colorMode = useContext(ColorModeContext);
 
   const isCustomer = userData?.username === "customer";
 
@@ -126,8 +131,25 @@ const Navbar = () => {
   };
 
   const handleTableChange = (event) => {
-    dispatch(updateTableNumberRedux(event.target.value));
-    // queryClient.invalidateQueries({ queryKey: ["getTables"] });
+    const newTable = event.target.value;
+    dispatch(updateTableNumberRedux(newTable));
+    // Persist updated table number alongside existing stored user data
+    try {
+      if (typeof window !== "undefined") {
+        const existing = JSON.parse(
+          localStorage.getItem("mgrUserData") || "{}"
+        );
+        localStorage.setItem(
+          "mgrUserData",
+          JSON.stringify({ ...existing, tableNumber: newTable })
+        );
+      }
+    } catch (e) {
+      console.warn("Failed to persist tableNumber", e);
+    }
+    // Invalidate any table-related queries so dependent components refetch
+    queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
+    queryClient.invalidateQueries({ queryKey: ["currentOrder"] });
   };
 
   const handleClose = () => {
@@ -318,7 +340,13 @@ const Navbar = () => {
 
   return (
     <>
-      <AppBar position="sticky" className={styles.appBar}>
+      <AppBar
+        position="sticky"
+        color="transparent"
+        elevation={0}
+        className={styles.appBar}
+        sx={{ boxShadow: "none" }}
+      >
         <Toolbar className={styles.toolbar}>
           <Link href="/pages/home" className={styles.brandLink}>
             <Typography variant="h6" className={styles.brand}>
@@ -397,35 +425,63 @@ const Navbar = () => {
             )}
 
             {isMobile ? (
-              <IconButton
-                color="inherit"
-                aria-label="open drawer"
-                edge="start"
-                onClick={handleDrawerToggle}
-                className={styles.menuButton}
-              >
-                <MenuIcon />
-              </IconButton>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <IconButton
+                  onClick={colorMode.toggleColorMode}
+                  aria-label="toggle light/dark mode"
+                  className={styles.mobileModeToggle}
+                  size="large"
+                >
+                  {theme.palette.mode === "dark" ? (
+                    <LightModeIcon fontSize="small" />
+                  ) : (
+                    <DarkModeIcon fontSize="small" />
+                  )}
+                </IconButton>
+                <IconButton
+                  color="inherit"
+                  aria-label="open drawer"
+                  edge="start"
+                  onClick={handleDrawerToggle}
+                  className={styles.menuButton}
+                >
+                  <MenuIcon />
+                </IconButton>
+              </Box>
             ) : (
               <Box className={styles.desktopMenu}>
-                {navItems.map((item) => (
-                  <Link
-                    href={item.path}
-                    key={item.name}
-                    className={styles.navLink}
-                  >
-                    <Button
-                      color="inherit"
-                      className={`${styles.navButton} ${
-                        isActive(item.path) ? styles.activeButton : ""
-                      }`}
-                      startIcon={item.icon}
-                      sx={{ display: item.showBtn ? "inline-flex" : "none" }}
+                <Box className={styles.navButtonsCluster}>
+                  {navItems.map((item) => (
+                    <Link
+                      href={item.path}
+                      key={item.name}
+                      className={styles.navLink}
                     >
-                      {item.name}
-                    </Button>
-                  </Link>
-                ))}
+                      <Button
+                        color="inherit"
+                        className={`${styles.navButton} ${
+                          isActive(item.path) ? styles.activeButton : ""
+                        }`}
+                        startIcon={item.icon}
+                        sx={{ display: item.showBtn ? "inline-flex" : "none" }}
+                      >
+                        {item.name}
+                      </Button>
+                    </Link>
+                  ))}
+                  <IconButton
+                    onClick={colorMode.toggleColorMode}
+                    aria-label="toggle light/dark mode"
+                    className={styles.modeToggle}
+                    size="large"
+                  >
+                    {theme.palette.mode === "dark" ? (
+                      <LightModeIcon />
+                    ) : (
+                      <DarkModeIcon />
+                    )}
+                  </IconButton>
+                </Box>
 
                 {isCustomer ? (
                   <Box
@@ -435,7 +491,12 @@ const Navbar = () => {
                       cursor: "pointer",
                     }}
                   >
-                    <AccountCircleIcon />
+                    <AccountCircleIcon
+                      sx={{
+                        color:
+                          theme.palette.mode === "light" ? "#fff" : "inherit",
+                      }}
+                    />
                   </Box>
                 ) : (
                   <>
@@ -448,7 +509,26 @@ const Navbar = () => {
                         }}
                         onClick={handleLogoutClick}
                       >
-                        <AccountCircleIcon />
+                        <IconButton
+                          aria-label="Account / Logout"
+                          size="large"
+                          sx={{
+                            color:
+                              theme.palette.mode === "light"
+                                ? "#fff"
+                                : "inherit",
+                          }}
+                          onClick={handleLogoutClick}
+                        >
+                          <AccountCircleIcon
+                            sx={{
+                              color:
+                                theme.palette.mode === "light"
+                                  ? "#fff"
+                                  : "inherit",
+                            }}
+                          />
+                        </IconButton>
                       </Box>
                     ) : (
                       <Button
@@ -501,24 +581,35 @@ const Navbar = () => {
               color="primary"
               variant="contained"
               autoFocus
+              disabled={isLogoutLoading}
               sx={{
                 background: "linear-gradient(45deg, #ff9800, #ff5722)",
                 color: "#fff",
-                width: "120px",
+                width: "140px",
                 fontWeight: 600,
                 boxShadow: "0 2px 8px rgba(255,87,34,0.12)",
                 display: "flex",
                 alignItems: "center",
                 gap: 1,
+                justifyContent: "center",
                 "&:hover": {
                   background:
                     "linear-gradient(45deg, #ff9800 80%, #ff5722 100%)",
                   color: "#fff",
                 },
+                "&.Mui-disabled": {
+                  opacity: 0.7,
+                  background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                  color: "#fff",
+                },
               }}
             >
-              <LogoutIcon sx={{ fontSize: 22, mr: 1 }} />
-              Logout
+              {isLogoutLoading ? (
+                <CircularProgress size={18} sx={{ color: "#fff" }} />
+              ) : (
+                <LogoutIcon sx={{ fontSize: 22 }} />
+              )}
+              {isLogoutLoading ? "Logging out" : "Logout"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -533,7 +624,38 @@ const Navbar = () => {
             keepMounted: true,
           }}
         >
-          {drawer}
+          <Box
+            sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+          >
+            {drawer}
+            <Box
+              sx={{
+                mt: "auto",
+                p: 2,
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              <Button
+                onClick={colorMode.toggleColorMode}
+                variant="outlined"
+                size="small"
+                sx={{
+                  borderColor: "rgba(255,255,255,0.6)",
+                  color: "white",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  backdropFilter: "blur(2px)",
+                  "&:hover": {
+                    borderColor: "#fff",
+                    backgroundColor: "rgba(255,255,255,0.15)",
+                  },
+                }}
+              >
+                {theme.palette.mode === "dark" ? "Light Mode" : "Dark Mode"}
+              </Button>
+            </Box>
+          </Box>
         </Drawer>
       </AppBar>
       {signInClicked && (

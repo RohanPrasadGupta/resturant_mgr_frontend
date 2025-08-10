@@ -2,14 +2,14 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Container, Alert, Box } from "@mui/material";
+import { Container, Alert, Box, useTheme } from "@mui/material";
 import OrderCard from "../../components/ordersCards/OrderCard";
 import LoaderComp from "../../components/LoaderComp/LoadingComp";
 import axios from "axios";
 import toast from "react-hot-toast";
 
 const page = () => {
-  // const userData = useSelector((state) => state.selectedUser.value);
+  const theme = useTheme();
   // const [localStorageData, setLocalStorageData] = useState(null);
   const queryClient = useQueryClient();
   const [ordersID, setOrdersID] = useState("");
@@ -178,11 +178,19 @@ const page = () => {
         sx={{
           width: "100%",
           height: "95vh",
-          backgroundColor: "#f5f5f5",
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.background.default
+              : "#f5f5f5",
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
           padding: 2,
+          color:
+            theme.palette.mode === "dark"
+              ? theme.palette.text.primary
+              : "inherit",
+          transition: "background-color .3s ease",
         }}
       >
         <Alert severity="error">Error loading order: {error.message}</Alert>
@@ -196,10 +204,18 @@ const page = () => {
         sx={{
           width: "100%",
           minHeight: "95vh",
-          backgroundColor: "#fff",
+          backgroundColor:
+            theme.palette.mode === "dark"
+              ? theme.palette.background.default
+              : theme.palette.background.paper,
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          color:
+            theme.palette.mode === "dark"
+              ? theme.palette.text.primary
+              : "inherit",
+          transition: "background-color .3s ease",
         }}
       >
         <Alert severity="info">No orders found.</Alert>
@@ -210,13 +226,21 @@ const page = () => {
   return (
     <Box
       sx={{
-        backgroundColor: "#fff",
+        backgroundColor:
+          theme.palette.mode === "dark"
+            ? theme.palette.background.default
+            : theme.palette.background.paper,
         overflowY: "auto",
         overflowX: "hidden",
         padding: 3,
         boxSizing: "border-box",
         width: "100%",
         minHeight: "95vh",
+        transition: "background-color .3s ease",
+        color:
+          theme.palette.mode === "dark"
+            ? theme.palette.text.primary
+            : "inherit",
       }}
     >
       <Container maxWidth="md">

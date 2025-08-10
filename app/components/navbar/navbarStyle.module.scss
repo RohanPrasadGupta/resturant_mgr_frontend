@@ -3,6 +3,11 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
+html[data-theme="dark"] .appBar {
+  background: linear-gradient(90deg, #ff7043, #ffa726) !important;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.55) !important;
+}
+
 .toolbar {
   display: flex;
   justify-content: space-between;
@@ -50,6 +55,31 @@
   gap: 8px;
 }
 
+.navButtonsCluster {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.modeToggle {
+  color: white !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  margin-left: 4px !important;
+  transition: background 0.25s ease !important;
+}
+
+.modeToggle:hover {
+  background: rgba(255, 255, 255, 0.28) !important;
+}
+
+html[data-theme="dark"] .modeToggle {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+}
+html[data-theme="dark"] .modeToggle:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
 .navLink {
   text-decoration: none;
   color: inherit;
@@ -93,6 +123,25 @@
   margin-right: -8px !important;
 }
 
+.mobileModeToggle {
+  color: white !important;
+  padding: 6px !important;
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-radius: 12px !important;
+  transition: background 0.25s ease !important;
+}
+
+.mobileModeToggle:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+}
+
+html[data-theme="dark"] .mobileModeToggle {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+html[data-theme="dark"] .mobileModeToggle:hover {
+  background: rgba(255, 255, 255, 0.32) !important;
+}
+
 .drawer {
   width: 240px;
 }
@@ -103,6 +152,10 @@
   background: linear-gradient(135deg, #ff5722, #ff9800);
   height: 100%;
   color: white;
+}
+
+html[data-theme="dark"] .drawerContainer {
+  background: linear-gradient(135deg, #ff7043, #ffa726);
 }
 
 .mobileLink {
@@ -191,6 +244,15 @@
       border-radius: 3px;
     }
   }
+}
+
+html[data-theme="dark"] .signInButton {
+  background-color: #2d2d2d !important;
+  color: #ffa726 !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5) !important;
+}
+html[data-theme="dark"] .signInButton:hover {
+  background-color: #3a3a3a !important;
 }
 
 .adminButton {
