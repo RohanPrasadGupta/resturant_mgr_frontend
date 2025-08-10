@@ -62,10 +62,16 @@ const DataVisualize = () => {
       const response = await fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
-          : `${process.env.PROD_BACKEDN}/api/admin/all-confirm-orders`
+          : `${process.env.PROD_BACKEDN}/api/admin/all-confirm-orders`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
       );
       const data = await response.json();
-
       if (Array.isArray(data)) {
         return data;
       } else if (data?.finalOrders && Array.isArray(data.finalOrders)) {
@@ -76,8 +82,9 @@ const DataVisualize = () => {
       }
     },
     retry: 1,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
   });
+
   useEffect(() => {
     setAnimate(true);
   }, []);
