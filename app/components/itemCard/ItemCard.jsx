@@ -172,9 +172,10 @@ const ItemCard = ({ data }) => {
   });
 
   useEffect(() => {
-    if (tableNumber) {
-      refetch();
-    }
+    // When tableNumber changes, reset cart state for this card
+    setIsAddedToCart(false);
+    setQuantity(1);
+    refetch();
   }, [tableNumber, refetch]);
 
   useEffect(() => {
