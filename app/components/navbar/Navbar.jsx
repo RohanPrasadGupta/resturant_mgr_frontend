@@ -127,6 +127,7 @@ const Navbar = () => {
 
   const handleTableChange = (event) => {
     dispatch(updateTableNumberRedux(event.target.value));
+    // queryClient.invalidateQueries({ queryKey: ["getTables"] });
   };
 
   const handleClose = () => {
@@ -368,7 +369,7 @@ const Navbar = () => {
                             ? tables.map((table) => (
                                 <MenuItem key={table._id} value={table.number}>
                                   {table.number}{" "}
-                                  {table.status !== "available" && (
+                                  {/* {table.status !== "available" && (
                                     <FiberManualRecordIcon
                                       sx={{
                                         color: "green",
@@ -376,7 +377,7 @@ const Navbar = () => {
                                         ml: 0.5,
                                       }}
                                     />
-                                  )}
+                                  )} */}
                                 </MenuItem>
                               ))
                             : null}
