@@ -112,7 +112,6 @@ const page = () => {
           }
         ),
       onSuccess: async (data) => {
-        console.log("Table served data:", data);
         toast.success("Table Served");
         await queryClient.refetchQueries({ queryKey: ["getOrder"] });
         refetch();
