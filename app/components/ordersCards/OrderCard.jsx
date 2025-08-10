@@ -14,6 +14,7 @@ import {
   RadioGroup,
   FormControlLabel,
   FormControl,
+  useTheme,
 } from "@mui/material";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import TableRestaurantIcon from "@mui/icons-material/TableRestaurant";
@@ -46,6 +47,7 @@ const OrderCard = ({
   handleServedTableOrder,
   handleCheckOutTableOrder,
 }) => {
+  const theme = useTheme();
   const [paymentType, setPaymentType] = useState("");
 
   if (!orderData) {
@@ -132,7 +134,14 @@ const OrderCard = ({
                 }}
                 className={styles.metaIcon}
               />
-              <Typography variant="body2">{formatDate(createdAt)}</Typography>
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#fff" : "inherit",
+                }}
+              >
+                {formatDate(createdAt)}
+              </Typography>
             </Box>
             <Box className={styles.metaItem}>
               <PersonIcon
@@ -141,7 +150,12 @@ const OrderCard = ({
                 }}
                 className={styles.metaIcon}
               />
-              <Typography variant="body2">
+              <Typography
+                variant="body2"
+                sx={{
+                  color: theme.palette.mode === "dark" ? "#fff" : "inherit",
+                }}
+              >
                 Ordered by: {orderBy === "staff" ? "Staff" : "Customer"}
               </Typography>
             </Box>

@@ -7,7 +7,7 @@
   transition: all 0.3s ease;
   border-radius: 16px;
   overflow: hidden;
-  background: white;
+  background: var(--bg-surface);
   border: 2px solid transparent;
 
   &:hover {
@@ -91,6 +91,7 @@
   height: 2.6rem; // Fixed height for 2 lines
   overflow: hidden;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
 }
@@ -101,9 +102,10 @@
   height: 2.8rem; // Fixed height for 2 lines
   overflow: hidden;
   display: -webkit-box;
+  line-clamp: 2;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  color: #666;
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -126,7 +128,11 @@
   gap: 2px;
   margin-bottom: 12px;
   padding: 8px;
-  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 87, 34, 0.07) 0%,
+    rgba(255, 152, 0, 0.07) 100%
+  );
   border-radius: 6px;
   border-left: 3px solid #ff9800;
   font-size: 0.75rem;
@@ -139,6 +145,28 @@
   background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
   border-radius: 8px;
   border-left: 4px solid #ff9800;
+  position: relative;
+  overflow: hidden;
+  transition: background 0.35s ease, border-color 0.35s ease,
+    box-shadow 0.35s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      circle at 15% 15%,
+      rgba(255, 255, 255, 0.45),
+      transparent 70%
+    );
+    opacity: 0.6;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(255, 152, 0, 0.25);
+  }
 }
 
 .availabilitySwitch {
@@ -287,7 +315,7 @@
 }
 
 .modalContent {
-  background: white;
+  background: var(--bg-surface);
   border-radius: 16px;
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
   max-width: 500px;
@@ -435,7 +463,7 @@
 .deleteDialogContent {
   font-size: 1rem;
   line-height: 1.5;
-  color: #333;
+  color: var(--foreground);
 
   strong {
     color: #ff5722;
@@ -614,4 +642,37 @@
 
 .menuItemCard {
   animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Dark mode overrides (scoped to module via :global) */
+:global(html[data-theme="dark"]) {
+  .menuItemCard {
+    background: linear-gradient(145deg, #262626 0%, #1c1c1c 100%);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65),
+      0 0 0 1px rgba(255, 152, 0, 0.08);
+  }
+  .availabilitySection {
+    background: linear-gradient(
+      135deg,
+      rgba(255, 140, 0, 0.25) 0%,
+      rgba(255, 87, 34, 0.2) 100%
+    );
+    border-left-color: #ffb74d;
+    &::before {
+      opacity: 0.25;
+    }
+  }
+  .availabilitySwitch .MuiFormControlLabel-label {
+    color: #ffcc80;
+  }
+  .deleteDialogTitle {
+    background: linear-gradient(135deg, #2c2c2c 0%, #252525 100%);
+    color: #ff8a65;
+  }
+  .warningIcon {
+    color: #ff7043;
+  }
+  .description {
+    color: var(--text-muted);
+  }
 }

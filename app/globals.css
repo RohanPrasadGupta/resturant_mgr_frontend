@@ -1,21 +1,40 @@
+/* tailwind layers (processed by Tailwind via PostCSS) */
+/* stylelint-disable at-rule-no-unknown */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+/* stylelint-enable at-rule-no-unknown */
 
+/* Core theme tokens */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --bg-page: #f9f9f9;
+  --bg-surface: #ffffff;
+  --text-muted: #666666;
+  --text-heading: #222222;
+  --shadow-color: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html[data-theme='dark'] {
+  --background: #0a0a0a;
+  --foreground: #ededed;
+  --bg-page: #0f0f0f;
+  --bg-surface: #1e1e1e;
+  --text-muted: #aaaaaa;
+  --text-heading: #e6e6e6;
+  --shadow-color: 0 2px 8px rgba(0,0,0,0.6);
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.35s ease, color 0.35s ease;
 }
+
+/* Utility classes (optional) */
+.surface-bg { background: var(--bg-surface); }
+.page-bg { background: var(--bg-page); }
+.text-muted { color: var(--text-muted); }
+.text-heading { color: var(--text-heading); }
