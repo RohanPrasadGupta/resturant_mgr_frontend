@@ -87,7 +87,13 @@ const UserAccess = () => {
       fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/users`
-          : `${process.env.PROD_BACKEDN}/api/users`
+          : `${process.env.PROD_BACKEDN}/api/users`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        }
       ).then((res) => res.json()),
   });
 
@@ -103,6 +109,7 @@ const UserAccess = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         }
       );
       if (!response.ok) {
@@ -128,6 +135,7 @@ const UserAccess = () => {
           : `${process.env.PROD_BACKEDN}/api/users/${userId}`,
         {
           method: "DELETE",
+          credentials: "include",
         }
       );
       if (!response.ok) {
@@ -160,6 +168,7 @@ const UserAccess = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify(userData),
         }
       );

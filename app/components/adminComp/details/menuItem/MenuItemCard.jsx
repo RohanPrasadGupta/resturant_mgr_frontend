@@ -64,6 +64,7 @@ const MenuItemCard = ({ data, reValidateMenuItems }) => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
           body: JSON.stringify(updatedData),
         }
       );
@@ -136,6 +137,7 @@ const MenuItemCard = ({ data, reValidateMenuItems }) => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         }
       );
       if (!response.ok) {
@@ -180,6 +182,7 @@ const MenuItemCard = ({ data, reValidateMenuItems }) => {
           headers: {
             "Content-Type": "application/json",
           },
+          credentials: "include",
         }
       );
       if (!response.ok) {

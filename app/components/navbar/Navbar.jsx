@@ -46,6 +46,7 @@ import Modal from "@mui/material/Modal";
 import toast from "react-hot-toast";
 import { useMutation } from "@tanstack/react-query";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -65,11 +66,6 @@ const Navbar = () => {
     userData?.username === "staff" || userData?.username === "admin";
 
   const isAdmin = userData?.username === "admin";
-
-  useEffect(() => {
-    console.log("isAdmin", isAdmin);
-    console.log("isStaff", isStaff);
-  }, [isAdmin, isStaff]);
 
   const isActive = (path) => pathname === path;
 
@@ -484,8 +480,19 @@ const Navbar = () => {
               Are you sure you want to log out?
             </DialogContentText>
           </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCancelLogout} color="primary">
+          <DialogActions
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+            }}
+          >
+            <Button
+              onClick={handleCancelLogout}
+              color="warning"
+              sx={{
+                width: "120px",
+              }}
+            >
               Cancel
             </Button>
             <Button
@@ -494,9 +501,22 @@ const Navbar = () => {
               variant="contained"
               autoFocus
               sx={{
-                backgroundColor: "#ff9800",
+                background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                color: "#fff",
+                width: "120px",
+                fontWeight: 600,
+                boxShadow: "0 2px 8px rgba(255,87,34,0.12)",
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                "&:hover": {
+                  background:
+                    "linear-gradient(45deg, #ff9800 80%, #ff5722 100%)",
+                  color: "#fff",
+                },
               }}
             >
+              <LogoutIcon sx={{ fontSize: 22, mr: 1 }} />
               Logout
             </Button>
           </DialogActions>

@@ -6,7 +6,12 @@ import {
   Drawer,
   IconButton,
   Fade,
+  SpeedDial,
+  SpeedDialAction,
 } from "@mui/material";
+import DashboardIcon from "@mui/icons-material/Dashboard";
+import PeopleIcon from "@mui/icons-material/People";
+import RestaurantMenuIcon from "@mui/icons-material/RestaurantMenu";
 import React, { useState, useEffect } from "react";
 import DataVisualize from "./details/DataVisualize";
 import UserAccess from "./details/UserAccess";
@@ -16,6 +21,7 @@ import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
+import WidgetsIcon from "@mui/icons-material/Widgets";
 
 const socket = io(
   process.env.NODE_ENV === "development"
@@ -80,32 +86,56 @@ const AdminBody = () => {
       }}
     >
       {isMobile && (
-        <Box
+        <SpeedDial
+          ariaLabel="Admin actions"
           sx={{
             position: "fixed",
-            bottom: "20px",
-            right: "20px",
+            bottom: 20,
+            right: 20,
             zIndex: 1200,
-            transition: "all 0.3s ease",
+            "& .MuiFab-primary": {
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+              color: "#fff",
+            },
           }}
+          icon={<WidgetsIcon sx={{ color: "#fff" }} />}
         >
-          <IconButton
-            onClick={toggleNav}
-            size="large"
+          <SpeedDialAction
+            icon={<DashboardIcon sx={{ color: "#fff" }} />}
+            tooltipTitle="Dashboard"
+            onClick={() => handleTabChange("visualize")}
             sx={{
-              backgroundColor: theme.palette.primary.main,
-              color: "white",
-              boxShadow: "0 4px 14px rgba(0,0,0,0.25)",
-              "&:hover": {
-                backgroundColor: theme.palette.primary.dark,
-              },
-              transition: "all 0.2s ease",
-              transform: navOpen && isMobile ? "rotate(90deg)" : "rotate(0deg)",
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+              color: "#fff",
+              boxShadow:
+                selectedTab === "visualize" ? "0 0 0 2px #ff9800" : undefined,
             }}
-          >
-            {navOpen && isMobile ? <CloseIcon /> : <MenuIcon />}
-          </IconButton>
-        </Box>
+          />
+          <SpeedDialAction
+            icon={<PeopleIcon sx={{ color: "#fff" }} />}
+            tooltipTitle="User Settings"
+            onClick={() => handleTabChange("userSettings")}
+            sx={{
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+              color: "#fff",
+              boxShadow:
+                selectedTab === "userSettings"
+                  ? "0 0 0 2px #ff9800"
+                  : undefined,
+            }}
+          />
+          <SpeedDialAction
+            icon={<RestaurantMenuIcon sx={{ color: "#fff" }} />}
+            tooltipTitle="Menu Settings"
+            onClick={() => handleTabChange("menuItems")}
+            sx={{
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+              color: "#fff",
+              boxShadow:
+                selectedTab === "menuItems" ? "0 0 0 2px #ff9800" : undefined,
+            }}
+          />
+        </SpeedDial>
       )}
 
       <Box

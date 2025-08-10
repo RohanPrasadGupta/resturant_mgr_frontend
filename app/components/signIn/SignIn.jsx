@@ -44,6 +44,10 @@ const SignIn = ({ handleClose }) => {
       return response.json();
     },
     onSuccess: (data) => {
+      if (data.message === "User is inactive") {
+        toast.error("User is revoked!.");
+      }
+
       if (data.message === "Invalid email or password") {
         toast.error("Invalid email or password");
       } else {
