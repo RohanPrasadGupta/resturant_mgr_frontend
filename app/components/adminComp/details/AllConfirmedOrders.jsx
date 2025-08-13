@@ -32,9 +32,8 @@ export default function AllConfirmedOrders() {
         start.setHours(0, 0, 0, 0);
         break;
       case "week": {
-        const day = now.getDay();
-        const diff = (day + 6) % 7;
-        start.setDate(now.getDate() - diff);
+        const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+        start.setDate(now.getDate() - day); // go back to Sunday
         start.setHours(0, 0, 0, 0);
         break;
       }
