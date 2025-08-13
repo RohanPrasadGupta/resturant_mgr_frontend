@@ -2,31 +2,34 @@ import React, { useEffect } from "react";
 import CompleteORderCard from "./completeOrders/CompleteORderCard";
 import { useQuery } from "@tanstack/react-query";
 import LoaderComp from "../../LoaderComp/LoadingComp";
+import { useCompletedOrders } from "../../../services/admin/confirmOrder/ConfirmedOrderApi";
 
 export default function AllConfirmedOrders() {
-  const { isLoading, data, error, refetch } = useQuery({
-    queryKey: ["getCompletedOrder"],
-    queryFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
-          : `${process.env.PROD_BACKEND}/api/admin/all-confirm-orders`,
-        {
-          method: "GET",
-          credentials: "include",
-        }
-      );
+  // const { isLoading, data, error, refetch } = useQuery({
+  //   queryKey: ["getCompletedOrder"],
+  //   queryFn: async () => {
+  //     const res = await fetch(
+  //       process.env.NODE_ENV === "development"
+  //         ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
+  //         : `${process.env.PROD_BACKEND}/api/admin/all-confirm-orders`,
+  //       {
+  //         method: "GET",
+  //         credentials: "include",
+  //       }
+  //     );
 
-      if (!res.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return res.json();
-    },
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    staleTime: 0,
-    cacheTime: 0,
-  });
+  //     if (!res.ok) {
+  //       throw new Error("Network response was not ok");
+  //     }
+  //     return res.json();
+  //   },
+  //   refetchOnWindowFocus: false,
+  //   refetchOnMount: true,
+  //   staleTime: 0,
+  //   cacheTime: 0,
+  // });
+
+  const { isLoading, data, error } = useCompletedOrders();
 
   useEffect(() => {
     console.log("data", data);
