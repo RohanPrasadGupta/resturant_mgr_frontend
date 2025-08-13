@@ -26,12 +26,12 @@ import {
   ExpandLess,
   Brightness4,
 } from "@mui/icons-material";
+import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 
 const AdminNav = ({ setSelectedTab, selectedTab }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
 
   const navItems = [
     {
@@ -48,6 +48,12 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
       id: "menuItems",
       label: "Menu Items",
       icon: <Restaurant />,
+      // disabled: true,
+    },
+    {
+      id: "completedOrders",
+      label: "Completed Orders",
+      icon: <ChecklistRtlIcon />,
       // disabled: true,
     },
     {

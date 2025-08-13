@@ -16,12 +16,14 @@ import React, { useState, useEffect } from "react";
 import DataVisualize from "./details/DataVisualize";
 import UserAccess from "./details/UserAccess";
 import MenuItems from "./details/MenuItems";
+import AllConfirmedOrders from "./details/AllConfirmedOrders";
 import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 import WidgetsIcon from "@mui/icons-material/Widgets";
+import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 
 const socket = io(
   process.env.NODE_ENV === "development"
@@ -34,7 +36,6 @@ const AdminBody = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [navOpen, setNavOpen] = useState(!isMobile);
-  const [contentInView, setContentInView] = useState(true);
 
   useEffect(() => {
     socket.emit("register-admin");
@@ -102,7 +103,12 @@ const AdminBody = () => {
         >
           <SpeedDialAction
             icon={<DashboardIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="Dashboard"
+            slotProps={{
+              tooltip: {
+                open: true,
+                title: "Dashboard",
+              },
+            }}
             onClick={() => handleTabChange("visualize")}
             sx={{
               background: "linear-gradient(45deg, #ff9800, #ff5722)",
@@ -113,7 +119,12 @@ const AdminBody = () => {
           />
           <SpeedDialAction
             icon={<PeopleIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="User Settings"
+            slotProps={{
+              tooltip: {
+                open: true,
+                title: "User Settings",
+              },
+            }}
             onClick={() => handleTabChange("userSettings")}
             sx={{
               background: "linear-gradient(45deg, #ff9800, #ff5722)",
@@ -126,13 +137,36 @@ const AdminBody = () => {
           />
           <SpeedDialAction
             icon={<RestaurantMenuIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="Menu Settings"
+            slotProps={{
+              tooltip: {
+                open: true,
+                title: "Menu Settings",
+              },
+            }}
             onClick={() => handleTabChange("menuItems")}
             sx={{
               background: "linear-gradient(45deg, #ff9800, #ff5722)",
               color: "#fff",
               boxShadow:
                 selectedTab === "menuItems" ? "0 0 0 2px #ff9800" : undefined,
+            }}
+          />
+          <SpeedDialAction
+            icon={<ChecklistRtlIcon sx={{ color: "#fff" }} />}
+            slotProps={{
+              tooltip: {
+                open: true,
+                title: "Completed Orders",
+              },
+            }}
+            onClick={() => handleTabChange("completedOrders")}
+            sx={{
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+              color: "#fff",
+              boxShadow:
+                selectedTab === "completedOrders"
+                  ? "0 0 0 2px #ff9800"
+                  : undefined,
             }}
           />
         </SpeedDial>
@@ -264,6 +298,7 @@ const AdminBody = () => {
               {selectedTab === "visualize" && <DataVisualize />}
               {selectedTab === "userSettings" && <UserAccess />}
               {selectedTab === "menuItems" && <MenuItems />}
+              {selectedTab === "completedOrders" && <AllConfirmedOrders />}
             </Box>
           </Fade>
         </Box>
