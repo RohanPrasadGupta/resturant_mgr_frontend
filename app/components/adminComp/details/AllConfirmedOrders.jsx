@@ -1,39 +1,60 @@
-import React, { useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import CompleteORderCard from "./completeOrders/CompleteORderCard";
-import { useQuery } from "@tanstack/react-query";
 import LoaderComp from "../../LoaderComp/LoadingComp";
 import { useCompletedOrders } from "../../../services/admin/confirmOrder/ConfirmedOrderApi";
+import {
+  Alert,
+  Box,
+  Stack,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from "@mui/material";
 
 export default function AllConfirmedOrders() {
-  // const { isLoading, data, error, refetch } = useQuery({
-  //   queryKey: ["getCompletedOrder"],
-  //   queryFn: async () => {
-  //     const res = await fetch(
-  //       process.env.NODE_ENV === "development"
-  //         ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
-  //         : `${process.env.PROD_BACKEND}/api/admin/all-confirm-orders`,
-  //       {
-  //         method: "GET",
-  //         credentials: "include",
-  //       }
-  //     );
-
-  //     if (!res.ok) {
-  //       throw new Error("Network response was not ok");
-  //     }
-  //     return res.json();
-  //   },
-  //   refetchOnWindowFocus: false,
-  //   refetchOnMount: true,
-  //   staleTime: 0,
-  //   cacheTime: 0,
-  // });
-
   const { isLoading, data, error } = useCompletedOrders();
+  const [range, setRange] = useState("today");
 
-  useEffect(() => {
-    console.log("data", data);
-  }, [data]);
+  const handleRange = (_e, next) => {
+    if (next) setRange(next);
+  };
+
+  const filtered = useMemo(() => {
+    const orders = data?.finalOrders || [];
+    if (!orders.length) return [];
+    if (range === "all") return orders;
+
+    const now = new Date();
+    const start = new Date(now);
+
+    switch (range) {
+      case "today":
+        start.setHours(0, 0, 0, 0);
+        break;
+      case "week": {
+        const day = now.getDay();
+        const diff = (day + 6) % 7;
+        start.setDate(now.getDate() - diff);
+        start.setHours(0, 0, 0, 0);
+        break;
+      }
+      case "month":
+        start.setDate(1);
+        start.setHours(0, 0, 0, 0);
+        break;
+      case "year":
+        start.setMonth(0, 1);
+        start.setHours(0, 0, 0, 0);
+        break;
+      default:
+        return orders;
+    }
+
+    return orders.filter((o) => {
+      const d = new Date(o.createdAt);
+      return d >= start && d <= now;
+    });
+  }, [data?.finalOrders, range]);
 
   if (isLoading) return <LoaderComp />;
 
@@ -64,8 +85,47 @@ export default function AllConfirmedOrders() {
   }
 
   return (
-    <div>
-      <CompleteORderCard orders={data} />
-    </div>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        p: { xs: 2, sm: 3 },
+      }}
+    >
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        justifyContent="space-between"
+        spacing={1.5}
+        sx={{ mb: 1 }}
+      >
+        <Typography variant="h6" fontWeight={700}>
+          Completed Orders
+        </Typography>
+        <ToggleButtonGroup
+          value={range}
+          exclusive
+          onChange={handleRange}
+          size="small"
+          color="primary"
+          sx={{ flexWrap: "wrap" }}
+        >
+          <ToggleButton value="today">Today</ToggleButton>
+          <ToggleButton value="week">This Week</ToggleButton>
+          <ToggleButton value="month">This Month</ToggleButton>
+          <ToggleButton value="year">This Year</ToggleButton>
+          <ToggleButton value="all">All</ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
+
+      {filtered.length > 0 ? (
+        filtered.map((order) => (
+          <CompleteORderCard key={order._id} order={order} />
+        ))
+      ) : (
+        <Alert severity="info">No orders found for selected range.</Alert>
+      )}
+    </Box>
   );
 }
