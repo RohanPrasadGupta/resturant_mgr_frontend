@@ -50,11 +50,15 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { ColorModeContext } from "../../theme/ColorModeContext";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationsBox from "../../components/notificaitons/NotificationsBox";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signInClicked, setSignInClicked] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const pathname = usePathname();
@@ -166,6 +170,14 @@ const Navbar = () => {
 
   const handleConfirmLogout = () => {
     logoutUser();
+  };
+
+  const handleNotificationClick = () => {
+    setNotificationOpen((prev) => !prev);
+  };
+
+  const handleCloseNotification = () => {
+    setNotificationOpen(false);
   };
 
   const navItems = [
@@ -474,6 +486,31 @@ const Navbar = () => {
                       <DarkModeIcon />
                     )}
                   </IconButton>
+
+                  {isAdmin && (
+                    <Box
+                      sx={{
+                        mt: "auto",
+                        p: 2,
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <IconButton
+                        onClick={handleNotificationClick}
+                        size="large"
+                        sx={{
+                          backgroundColor: theme.palette.primary.main,
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
+                        <NotificationsIcon />
+                      </IconButton>
+                    </Box>
+                  )}
                 </Box>
 
                 {isCustomer ? (
@@ -667,6 +704,34 @@ const Navbar = () => {
           </Box>
         </Modal>
       )}
+      {
+        // notificationOpen
+        true && (
+          <ClickAwayListener onClickAway={handleCloseNotification}>
+            <Box
+              sx={{
+                position: "fixed",
+                top: "80px",
+                right: "20px",
+                minHeight: "150px",
+                maxHeight: "500px",
+                width: "350px",
+                backgroundColor: theme.palette.background.paper,
+                boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+                borderRadius: "14px",
+                zIndex: 1300,
+                animation: "slideIn 0.3s ease-out",
+                "@keyframes slideIn": {
+                  from: { transform: "translateX(100%)", opacity: 0 },
+                  to: { transform: "translateX(0)", opacity: 1 },
+                },
+              }}
+            >
+              <NotificationsBox />
+            </Box>
+          </ClickAwayListener>
+        )
+      }
     </>
   );
 };
