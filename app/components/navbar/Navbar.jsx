@@ -187,6 +187,11 @@ const Navbar = () => {
   const drawer = (
     <Box
       className={styles.drawerContainer}
+      sx={{
+        background: isMobile
+          ? "none"
+          : "linear-gradient(135deg, #ff5722, #ff9800)",
+      }}
       onClick={(e) => e.stopPropagation()}
     >
       <Box
@@ -427,18 +432,6 @@ const Navbar = () => {
             {isMobile ? (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <IconButton
-                  onClick={colorMode.toggleColorMode}
-                  aria-label="toggle light/dark mode"
-                  className={styles.mobileModeToggle}
-                  size="large"
-                >
-                  {theme.palette.mode === "dark" ? (
-                    <LightModeIcon fontSize="small" />
-                  ) : (
-                    <DarkModeIcon fontSize="small" />
-                  )}
-                </IconButton>
-                <IconButton
                   color="inherit"
                   aria-label="open drawer"
                   edge="start"
@@ -625,9 +618,15 @@ const Navbar = () => {
           }}
         >
           <Box
-            sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+            }}
           >
             {drawer}
+
             <Box
               sx={{
                 mt: "auto",
@@ -636,24 +635,23 @@ const Navbar = () => {
                 justifyContent: "center",
               }}
             >
-              <Button
+              <IconButton
                 onClick={colorMode.toggleColorMode}
-                variant="outlined"
-                size="small"
+                aria-label="toggle light/dark mode"
                 sx={{
-                  borderColor: "rgba(255,255,255,0.6)",
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  backdropFilter: "blur(2px)",
+                  backgroundColor: theme.palette.primary.main,
+                  color: "#fff",
                   "&:hover": {
-                    borderColor: "#fff",
-                    backgroundColor: "rgba(255,255,255,0.15)",
+                    backgroundColor: theme.palette.primary.dark,
                   },
                 }}
               >
-                {theme.palette.mode === "dark" ? "Light Mode" : "Dark Mode"}
-              </Button>
+                {theme.palette.mode === "dark" ? (
+                  <LightModeIcon />
+                ) : (
+                  <DarkModeIcon />
+                )}
+              </IconButton>
             </Box>
           </Box>
         </Drawer>
