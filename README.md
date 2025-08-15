@@ -213,6 +213,8 @@ While no explicit test suite is included yet, recommended next steps:
 ## 📷 UI Previews
 
 <p align="center">
+  <img width="1413" height="829" alt="image" src="https://github.com/user-attachments/assets/d1e90a14-2d34-4f73-9a6b-4934320c5c96" />
+
   <img width="800" src="https://github.com/user-attachments/assets/9112812f-dbe8-41c2-a5fb-1ba35395bf6b" />
 <img width="1910" height="662" alt="7" src="https://github.com/user-attachments/assets/4ddf44ec-fefd-4fe9-a684-2917baf35c38" />
 <img width="1908" height="945" alt="8" src="https://github.com/user-attachments/assets/dc2617a6-6cce-4721-a12c-0ce2c5d4d23b" />
