@@ -11,6 +11,7 @@ export function useCompletedOrders() {
         {
           method: "GET",
           credentials: "include",
+          headers: { "Content-Type": "application/json" },
         }
       );
 

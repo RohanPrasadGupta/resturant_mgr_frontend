@@ -19,29 +19,15 @@ import {
   alpha,
 } from "@mui/material";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import RefreshIcon from "@mui/icons-material/Refresh";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
-import CloseIcon from "@mui/icons-material/Close";
-import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
-import RestaurantIcon from "@mui/icons-material/Restaurant";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutline";
-import WarningAmberIcon from "@mui/icons-material/WarningAmber";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
-import AssignmentTurnedInIcon from "@mui/icons-material/AssignmentTurnedIn";
-
-const endpointBase =
-  process.env.NODE_ENV === "development"
-    ? process.env.LOCAL_BACKEND
-    : process.env.PROD_BACKEDN;
-
-const iconMap = {
-  order: <RestaurantIcon fontSize="small" />,
-  inventory: <Inventory2Icon fontSize="small" />,
-  status: <AssignmentTurnedInIcon fontSize="small" />,
-  warning: <WarningAmberIcon fontSize="small" />,
-  default: <NotificationsNoneIcon fontSize="small" />,
-};
+import {
+  useGetNotifications,
+  useMarkAllReadNotifications,
+  useMarkAllHideNotifications,
+} from "../../services/notifications/NotificationServices";
+import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+import NotificationsIcon from "@mui/icons-material/Notifications";
 
 const timeAgo = (ts) => {
   if (!ts) return "";
@@ -55,37 +41,51 @@ const timeAgo = (ts) => {
   return d + "d";
 };
 
-const NotificationsBox = ({ onClose }) => {
+const NotificationsBox = ({
+  notificationError,
+  notificationsData,
+  notificationLoading,
+}) => {
   const theme = useTheme();
-  const queryClient = useQueryClient();
+  // const [notificationsData, setNotificationsData] = useState([]);
 
-  const {
-    isLoading: notificationLoading,
-    data,
-    error,
-    refetch,
-    isFetching,
-  } = useQuery({
-    queryKey: ["getNotifications"],
-    queryFn: async () => {
-      const res = await fetch(`${endpointBase}/api/notifications`, {
-        method: "GET",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!res.ok) throw new Error("Failed to load notifications");
-      return res.json();
-    },
-    refetchOnWindowFocus: false,
-    staleTime: 15000,
-  });
+  // const { isLoading: notificationLoading, data, error } = useGetNotifications();
+
+  // useEffect(() => {
+  //   if (data) {
+  //     const filteredNotifications = data.notifications.filter(
+  //       (n) => !n.hideMark === true
+  //     );
+  //     setNotificationsData(filteredNotifications);
+  //   }
+  // }, [data]);
+
+  const { mutate: markAllRead, isLoading: isMarkAllRead } =
+    useMarkAllReadNotifications();
+
+  const { mutate: markAllHide, isLoading: isMarkAllHide } =
+    useMarkAllHideNotifications();
+
+  const handleAllReadFunc = () => {
+    markAllRead();
+  };
+  const handleAllHideFunc = () => {
+    markAllHide();
+  };
+
+  const limitNotificationDesc = (desc) => {
+    if (!desc) return "";
+    return desc.length > 10 ? desc.slice(0, 10) + "..." : desc;
+  };
 
   if (notificationLoading) {
     return (
-      <Box sx={{ p: 2, height: 500, display: "flex", flexDirection: "column" }}>
+      <Box
+        sx={{ p: 2, maxHeight: 500, display: "flex", flexDirection: "column" }}
+      >
         <HeaderSkeleton />
         <Box sx={{ mt: 2 }}>
-          {Array.from({ length: 6 }).map((_, i) => (
+          {Array.from({ length: 4 }).map((_, i) => (
             <Box key={i} sx={{ display: "flex", gap: 2, mb: 2 }}>
               <Skeleton variant="circular" width={40} height={40} />
               <Box sx={{ flex: 1 }}>
@@ -99,11 +99,11 @@ const NotificationsBox = ({ onClose }) => {
     );
   }
 
-  if (error) {
+  if (notificationError) {
     return (
       <Box
         sx={{
-          height: 500,
+          minHeight: 500,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -113,6 +113,30 @@ const NotificationsBox = ({ onClose }) => {
         <Alert severity="error" sx={{ fontWeight: 500 }}>
           Failed to load notifications: {error.message}
         </Alert>
+      </Box>
+    );
+  }
+
+  if (notificationsData.length === 0) {
+    return (
+      <Box
+        sx={{
+          p: 4,
+          height: 300,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          borderRadius: 2,
+        }}
+      >
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          No notifications
+        </Typography>
+        <Typography variant="caption" color="text.disabled">
+          You are all caught up!
+        </Typography>
       </Box>
     );
   }
@@ -131,6 +155,31 @@ const NotificationsBox = ({ onClose }) => {
     >
       <Box
         sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          px: 2,
+          pb: 1,
+          borderBottom: `1px solid ${alpha(theme.palette.divider, 0.4)}`,
+        }}
+      >
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          Notifications
+        </Typography>
+        <Chip
+          label={notificationsData.length}
+          size="small"
+          sx={{
+            fontWeight: 600,
+            bgcolor: theme.palette.primary.main,
+            color: "#fff",
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          marginTop: 1,
           minHeight: "200px",
           maxHeight: "400px",
           borderRadius: "8px",
@@ -141,93 +190,103 @@ const NotificationsBox = ({ onClose }) => {
             from: { transform: "translateX(100%)", opacity: 0 },
             to: { transform: "translateX(0)", opacity: 1 },
           },
+          "&::-webkit-scrollbar": {
+            display: "none",
+          },
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
         }}
       >
-        {data?.notifications.map((n) => {
-          const unread = !n.read;
+        {notificationsData.map((n) => {
+          const unread = !n.readMark;
           return (
             <ListItem
               key={n._id}
               sx={{
                 mb: 1,
+                p: 1.5,
                 borderRadius: 2,
                 display: "flex",
-                flexDirection: "row",
                 alignItems: "center",
-                width: "100%",
                 justifyContent: "space-between",
-                background: unread
+                backgroundColor: unread
                   ? alpha(theme.palette.primary.main, 0.08)
-                  : alpha(theme.palette.background.paper, 0.6),
+                  : theme.palette.background.paper,
+                borderLeft: `4px solid ${
+                  unread ? theme.palette.primary.main : "transparent"
+                }`,
                 border: `1px solid ${alpha(
                   unread ? theme.palette.primary.main : theme.palette.divider,
                   unread ? 0.6 : 0.4
                 )}`,
                 boxShadow: unread
-                  ? "0 4px 14px -6px rgba(0,0,0,.35)"
-                  : "0 2px 10px -6px rgba(0,0,0,.15)",
-                position: "relative",
-                overflow: "hidden",
-                cursor: "default",
-                transition: "all .25s ease",
+                  ? "0 4px 14px -6px rgba(0,0,0,.25)"
+                  : "0 2px 10px -6px rgba(0,0,0,.1)",
+                transition: "all 0.25s ease",
                 "&:hover": {
-                  background: alpha(
+                  backgroundColor: alpha(
                     theme.palette.primary.main,
-                    unread ? 0.15 : 0.1
+                    unread ? 0.15 : 0.05
                   ),
-                  transform: "translateY(-2px)",
                 },
               }}
             >
-              <Box>
-                <Typography
-                  variant="subtitle2"
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                <IconButton
+                  size="medium"
                   sx={{
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 1,
+                    backgroundColor: theme.palette.primary.main,
+                    color: "#fff",
                   }}
                 >
+                  {unread ? <NotificationsActiveIcon /> : <NotificationsIcon />}
+                </IconButton>
+
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      fontWeight: 600,
+                      lineHeight: 1.3,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {`New order complete.`}
+                  </Typography>
                   <Chip
-                    label={`Order Id: ${n?.orderId}`}
+                    label={`Order ID: ${limitNotificationDesc(n.orderId)}`}
                     size="small"
                     sx={{
-                      height: 18,
-                      fontSize: "0.6rem",
+                      mt: 0.5,
+                      fontSize: "0.65rem",
                       fontWeight: 700,
-                      background: "linear-gradient(90deg,#ff9800,#ff5722)",
+                      backgroundColor: theme.palette.primary.main,
                       color: "#fff",
                     }}
                   />
-                </Typography>
+                </Box>
+              </Box>
 
+              <Box sx={{ textAlign: "right" }}>
                 <Typography
                   variant="caption"
                   sx={{
-                    mt: 0.5,
-                    display: "inline-block",
                     fontWeight: 500,
-                    letterSpacing: ".5px",
                     color: alpha(theme.palette.text.secondary, 0.85),
                   }}
                 >
-                  Time ago: {timeAgo(n.createdAt)}
+                  {timeAgo(n.createdAt)}
                 </Typography>
-              </Box>
-
-              <Box>
                 <Typography
                   variant="body2"
                   sx={{
-                    mt: 0.5,
-                    display: "inline-block",
-                    fontWeight: 500,
-                    letterSpacing: ".5px",
-                    color: alpha(theme.palette.text.secondary, 0.85),
+                    fontWeight: 600,
+                    color: theme.palette.success.main,
                   }}
                 >
-                  NRP: {n.orderValue}
+                  ₹{n.orderValue}
                 </Typography>
               </Box>
             </ListItem>
@@ -249,8 +308,7 @@ const NotificationsBox = ({ onClose }) => {
           variant="outlined"
           size="small"
           startIcon={<DoneAllIcon />}
-          //   disabled={unreadCount === 0 || markAllReadMutation.isLoading}
-          //   onClick={() => markAllReadMutation.mutate()}
+          onClick={handleAllReadFunc}
           sx={{
             textTransform: "none",
             borderColor: "#ff9800",
@@ -262,18 +320,17 @@ const NotificationsBox = ({ onClose }) => {
             },
           }}
         >
-          Mark read
+          {isMarkAllRead ? "Marking..." : "Mark read"}
         </Button>
         <Button
           variant="outlined"
           color="error"
           size="small"
+          onClick={handleAllHideFunc}
           startIcon={<DeleteSweepIcon />}
-          //   disabled={notificationsRaw.length === 0 || clearAllMutation.isLoading}
-          //   onClick={() => clearAllMutation.mutate()}
           sx={{ textTransform: "none", flex: 1 }}
         >
-          Clear all
+          {isMarkAllHide ? "Clearing..." : "Clear all"}
         </Button>
       </Box>
     </Box>

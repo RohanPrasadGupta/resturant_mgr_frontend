@@ -151,15 +151,18 @@ const CompleteORderCard = ({ order }) => {
           <Typography variant="body2" color="text.secondary">
             {itemCount} items
           </Typography>
-          <Typography
-            variant="h6"
-            fontWeight={800}
-            sx={{ fontSize: { xs: 16, sm: 20 } }}
-          >
-            {typeof order?.total === "number"
-              ? currency.format(order.total)
-              : "—"}
-          </Typography>
+
+          {!expanded && (
+            <Typography
+              variant="h6"
+              fontWeight={800}
+              sx={{ fontSize: { xs: 16, sm: 20 } }}
+            >
+              {typeof order?.total === "number"
+                ? currency.format(order.total)
+                : "—"}
+            </Typography>
+          )}
         </Stack>
       </CardContent>
 
