@@ -58,6 +58,7 @@ const NotificationsBox = ({ enabled = true, onLoaded }) => {
       if (!res.ok) throw new Error("Failed to fetch notifications");
       return res.json();
     },
+    onError: (error) => console.error(error),
   });
 
   useEffect(() => {
@@ -145,7 +146,7 @@ const NotificationsBox = ({ enabled = true, onLoaded }) => {
         }}
       >
         <Alert severity="error" sx={{ fontWeight: 500 }}>
-          Failed to load notifications: {error.message}
+          Failed to load notifications:
         </Alert>
       </Box>
     );
