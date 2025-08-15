@@ -7,7 +7,7 @@ export function useCompletedOrders() {
       const res = await fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/admin/all-confirm-orders`
-          : `${process.env.PROD_BACKEND}/api/admin/all-confirm-orders`,
+          : `${process.env.PROD_BACKEDN}/api/admin/all-confirm-orders`,
         {
           method: "GET",
           credentials: "include",
