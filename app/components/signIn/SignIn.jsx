@@ -63,7 +63,7 @@ const SignIn = ({ handleClose }) => {
 
         handleClose();
         // relode when successful login
-        // window.location.reload();
+        window.location.reload();
       }
     },
     onError: () => {

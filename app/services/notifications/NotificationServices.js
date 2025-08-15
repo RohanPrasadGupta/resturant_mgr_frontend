@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useGetNotifications(options = {}) {
+export function useGetNotifications() {
   return useQuery({
     queryKey: ["getNotifications"],
     queryFn: async () => {
@@ -19,11 +19,6 @@ export function useGetNotifications(options = {}) {
       }
       return res.json();
     },
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    staleTime: 15000,
-    cacheTime: 0,
-    ...options,
   });
 }
 
