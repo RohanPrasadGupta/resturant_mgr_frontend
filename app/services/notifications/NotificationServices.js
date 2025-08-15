@@ -1,22 +1,35 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useGetNotifications() {
+// Helper to resolve backend base; supports NEXT_PUBLIC_* fallbacks for client usage
+function resolveBackendBase() {
+  const dev =
+    process.env.NEXT_PUBLIC_LOCAL_BACKEND || process.env.LOCAL_BACKEND || "";
+  const prod =
+    process.env.NEXT_PUBLIC_PROD_BACKEND || process.env.PROD_BACKEND || "";
+  const base = process.env.NODE_ENV === "development" ? dev : prod;
+  return base?.replace(/\/$/, ""); // trim trailing slash
+}
+
+export function useGetNotifications({ enabled = false } = {}) {
   return useQuery({
     queryKey: ["getNotifications"],
+    enabled, // only run when explicitly enabled
+    refetchOnWindowFocus: false,
     queryFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/notifications`
-          : `${process.env.PROD_BACKEND}/api/notifications`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          refetchOnWindowFocus: "always",
-        }
-      );
+      const base = resolveBackendBase();
+      if (!base) {
+        // If base URL missing, skip with graceful error
+        throw new Error(
+          "Backend base URL not configured (set NEXT_PUBLIC_LOCAL_BACKEND / NEXT_PUBLIC_PROD_BACKEND)"
+        );
+      }
+      const res = await fetch(`${base}/api/notifications`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
       if (!res.ok) {
-        throw new Error("Network response was not ok");
+        throw new Error("Failed to fetch notifications");
       }
       return res.json();
     },
@@ -28,16 +41,12 @@ export function useMarkAllReadNotifications() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/notifications/read/all`
-          : `${process.env.PROD_BACKEND}/api/notifications/read/all`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const base = resolveBackendBase();
+      const res = await fetch(`${base}/api/notifications/read/all`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (!res.ok) {
         throw new Error("Failed to mark all as read");
@@ -54,16 +63,12 @@ export function useMarkAllHideNotifications() {
 
   return useMutation({
     mutationFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/notifications/hide/all`
-          : `${process.env.PROD_BACKEND}/api/notifications/hide/all`,
-        {
-          method: "PATCH",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
+      const base = resolveBackendBase();
+      const res = await fetch(`${base}/api/notifications/hide/all`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
 
       if (!res.ok) {
         throw new Error("Failed to mark all as read");
