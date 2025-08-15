@@ -24,7 +24,7 @@ function resolveBackendBase() {
   const dev =
     process.env.NEXT_PUBLIC_LOCAL_BACKEND || process.env.LOCAL_BACKEND || "";
   const prod =
-    process.env.NEXT_PUBLIC_PROD_BACKEND || process.env.PROD_BACKEND || "";
+    process.env.NEXT_PUBLIC_PROD_BACKEDN || process.env.PROD_BACKEDN || "";
   const base = process.env.NODE_ENV === "development" ? dev : prod;
   return base?.replace(/\/$/, "");
 }
