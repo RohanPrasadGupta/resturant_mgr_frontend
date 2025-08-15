@@ -342,6 +342,7 @@ const OrderCard = ({
                 borderColor: "#ff5722",
                 color: "#ff5722",
                 background: "transparent",
+                whiteSpace: "nowrap",
                 "&:hover": {
                   borderColor: "#ff5722",
                   backgroundColor: "rgba(255, 87, 34, 0.1)",

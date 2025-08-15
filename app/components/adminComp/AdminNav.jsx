@@ -26,12 +26,12 @@ import {
   ExpandLess,
   Brightness4,
 } from "@mui/icons-material";
+import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
+import TableBarIcon from "@mui/icons-material/TableBar";
 
 const AdminNav = ({ setSelectedTab, selectedTab }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
 
   const navItems = [
     {
@@ -51,15 +51,21 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
       // disabled: true,
     },
     {
+      id: "completedOrders",
+      label: "Completed Orders",
+      icon: <ChecklistRtlIcon />,
+      // disabled: true,
+    },
+    {
       id: "customers",
       label: "Customers",
       icon: <People />,
       disabled: true,
     },
     {
-      id: "notifications",
-      label: "Notifications",
-      icon: <Notifications />,
+      id: "tableManagement",
+      label: "Table Management",
+      icon: <TableBarIcon />,
       disabled: true,
     },
   ];
@@ -71,14 +77,10 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
     ) {
       return;
     }
-    setDrawerOpen(open);
   };
 
   const handleNavClick = (itemId) => {
     setSelectedTab(itemId);
-    if (isMobile) {
-      setDrawerOpen(false);
-    }
   };
 
   const renderNavItems = () => (
@@ -155,7 +157,7 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                 transition: "all 0.3s ease",
                 "&:hover": {
                   backgroundColor: isSelected
-                    ? undefined // Keep gradient when selected
+                    ? undefined
                     : theme.palette.action.hover,
                   boxShadow: isSelected
                     ? "0 4px 10px rgba(255, 87, 34, 0.3)"
@@ -192,7 +194,7 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
                         ? "#fff"
                         : item.disabled
                         ? theme.palette.text.disabled
-                        : "#ff5722", // Theme color for non-selected icons
+                        : "#ff5722",
                     }}
                   >
                     {item.icon}
@@ -234,10 +236,7 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
           }}
         >
           <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-            <Brightness4
-              fontSize="small"
-              sx={{ color: "#ff9800" }} // Theme color for footer icon
-            />
+            <Brightness4 fontSize="small" sx={{ color: "#ff9800" }} />
             <Typography
               variant="body2"
               sx={{
@@ -257,82 +256,20 @@ const AdminNav = ({ setSelectedTab, selectedTab }) => {
 
   return (
     <>
-      {isMobile ? (
-        <>
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              padding: "16px",
-              borderBottom: `1px solid ${theme.palette.divider}`,
-              background:
-                theme.palette.mode === "dark"
-                  ? "linear-gradient(to right, rgba(33, 33, 33, 0.95), rgba(66, 66, 66, 0.95))"
-                  : "linear-gradient(to right, rgba(255, 255, 255, 0.95), rgba(245, 245, 245, 0.95))",
-            }}
-          >
-            <Typography
-              variant="h6"
-              fontWeight={600}
-              sx={{
-                background: "linear-gradient(90deg, #ff5722, #ff9800)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-              }}
-            >
-              Admin Panel
-            </Typography>
-            <IconButton
-              aria-label="open drawer"
-              edge="start"
-              onClick={toggleDrawer(true)}
-              sx={{
-                color: "#ff5722",
-                "&:hover": {
-                  backgroundColor: "rgba(255, 87, 34, 0.08)",
-                },
-              }}
-            >
-              <MenuIcon />
-            </IconButton>
-          </Box>
-          <Drawer
-            anchor="left"
-            open={drawerOpen}
-            onClose={toggleDrawer(false)}
-            sx={{
-              "& .MuiDrawer-paper": {
-                width: 280,
-                boxSizing: "border-box",
-                borderRadius: { xs: "0 16px 16px 0", md: 0 },
-                boxShadow: "0 8px 24px rgba(0, 0, 0, 0.15)",
-              },
-            }}
-          >
-            <Box
-              sx={{ height: "100%", display: "flex", flexDirection: "column" }}
-            >
-              {renderNavItems()}
-            </Box>
-          </Drawer>
-        </>
-      ) : (
-        <Box
-          sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: "0 0 20px rgba(0, 0, 0, 0.05)",
-            background:
-              theme.palette.mode === "dark"
-                ? "linear-gradient(180deg, rgba(33, 33, 33, 0.98), rgba(28, 28, 28, 0.95))"
-                : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 250, 0.95))",
-          }}
-        >
-          {renderNavItems()}
-        </Box>
-      )}
+      <Box
+        sx={{
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          boxShadow: "0 0 20px rgba(0, 0, 0, 0.05)",
+          background:
+            theme.palette.mode === "dark"
+              ? "linear-gradient(180deg, rgba(33, 33, 33, 0.98), rgba(28, 28, 28, 0.95))"
+              : "linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 250, 250, 0.95))",
+        }}
+      >
+        {renderNavItems()}
+      </Box>
     </>
   );
 };
