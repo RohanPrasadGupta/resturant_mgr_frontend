@@ -54,7 +54,6 @@ import NotificationsIcon from "@mui/icons-material/Notifications";
 import NotificationsBox from "../../components/notificaitons/NotificationsBox";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import CircleIcon from "@mui/icons-material/Circle";
-import { useGetNotifications } from "../../services/notifications/NotificationServices";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -79,23 +78,6 @@ const Navbar = () => {
   const isAdmin = userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
-
-  const {
-    isLoading: notificationLoading,
-    data: notificationData,
-    error: notificationError,
-  } = useGetNotifications({ enabled: isAdmin && notificationOpen });
-
-  useEffect(() => {
-    if (notificationData?.notifications) {
-      const filtered = notificationData.notifications.filter(
-        (n) => !n.hideMark === true
-      );
-      setNotificationsData(filtered);
-    } else if (!notificationOpen) {
-      // When panel closed, keep existing notifications but don't clear (avoid flicker)
-    }
-  }, [notificationData, notificationOpen]);
 
   const {
     isLoading,
@@ -477,21 +459,7 @@ const Navbar = () => {
                             backgroundColor: theme.palette.primary.dark,
                           },
                         }}
-                        aria-label={`notifications ${notificationsData.length} items`}
                       >
-                        {notificationsData && notificationsData.length > 0 && (
-                          <CircleIcon
-                            sx={{
-                              position: "absolute",
-                              top: 6,
-                              right: 6,
-                              fontSize: "0.8rem",
-                              color: "green",
-                              zIndex: 2,
-                            }}
-                          />
-                        )}
-
                         <NotificationsIcon />
                       </IconButton>
                     </Box>
@@ -772,11 +740,7 @@ const Navbar = () => {
               },
             }}
           >
-            <NotificationsBox
-              notificationError={notificationError}
-              notificationsData={notificationsData}
-              notificationLoading={notificationLoading}
-            />
+            <NotificationsBox />
           </Box>
         </ClickAwayListener>
       )}

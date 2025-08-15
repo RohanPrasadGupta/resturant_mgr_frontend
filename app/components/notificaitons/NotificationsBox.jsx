@@ -1,17 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Alert,
   Box,
   Typography,
   IconButton,
-  CircularProgress,
   Chip,
-  List,
   ListItem,
-  ListItemText,
-  ListItemAvatar,
-  Avatar,
-  Tooltip,
   Divider,
   Skeleton,
   Button,
@@ -20,37 +14,91 @@ import {
 } from "@mui/material";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
-import {
-  useMarkAllReadNotifications,
-  useMarkAllHideNotifications,
-} from "../../services/notifications/NotificationServices";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import NotificationsIcon from "@mui/icons-material/Notifications";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { timeAgo } from "../../constants/ConversionFunctions";
 
-const timeAgo = (ts) => {
-  if (!ts) return "";
-  const diff = Date.now() - new Date(ts).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "now";
-  if (m < 60) return m + "m";
-  const h = Math.floor(m / 60);
-  if (h < 24) return h + "h";
-  const d = Math.floor(h / 24);
-  return d + "d";
-};
+// Resolve backend base with NEXT_PUBLIC fallbacks for client-side usage
+function resolveBackendBase() {
+  const dev =
+    process.env.NEXT_PUBLIC_LOCAL_BACKEND || process.env.LOCAL_BACKEND || "";
+  const prod =
+    process.env.NEXT_PUBLIC_PROD_BACKEND || process.env.PROD_BACKEND || "";
+  const base = process.env.NODE_ENV === "development" ? dev : prod;
+  return base?.replace(/\/$/, "");
+}
 
-const NotificationsBox = ({
-  notificationsData = [],
-  notificationLoading,
-  notificationError,
-}) => {
+// Expose component props to control fetching from parent (e.g., only when admin + panel open)
+// enabled: boolean to start fetching
+// onLoaded: optional callback with notifications array
+const NotificationsBox = ({ enabled = true, onLoaded }) => {
+  const [notificationsData, setNotificationsData] = useState([]);
+  const queryClient = useQueryClient();
   const theme = useTheme();
 
-  const { mutate: markAllRead, isLoading: isMarkAllRead } =
-    useMarkAllReadNotifications();
+  const {
+    isLoading: notificationLoading,
+    data: notificationData,
+    error: notificationError,
+    refetch,
+  } = useQuery({
+    queryKey: ["getNotifications"],
+    enabled, // prevents unauthorized or premature fetches
+    refetchOnWindowFocus: false,
+    refetchOnMount: enabled,
+    queryFn: async () => {
+      const base = resolveBackendBase();
+      if (!base) throw new Error("Backend base URL not configured");
+      const res = await fetch(`${base}/api/notifications`, {
+        method: "GET",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to fetch notifications");
+      return res.json();
+    },
+  });
 
-  const { mutate: markAllHide, isLoading: isMarkAllHide } =
-    useMarkAllHideNotifications();
+  useEffect(() => {
+    if (notificationData?.notifications) {
+      const filteredNotifications = notificationData.notifications.filter(
+        (n) => !n.hideMark === true
+      );
+      setNotificationsData(filteredNotifications);
+      onLoaded && onLoaded(filteredNotifications);
+    } else if (!enabled) {
+      // Do nothing; fetch not enabled yet
+    }
+  }, [notificationData, enabled, onLoaded]);
+
+  const { mutate: markAllRead, isLoading: isMarkAllRead } = useMutation({
+    mutationFn: async () => {
+      const base = resolveBackendBase();
+      if (!base) throw new Error("Backend base URL not configured");
+      const res = await fetch(`${base}/api/notifications/read/all`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to mark all as read");
+    },
+    onSuccess: () => queryClient.invalidateQueries(["getNotifications"]),
+  });
+
+  const { mutate: markAllHide, isLoading: isMarkAllHide } = useMutation({
+    mutationFn: async () => {
+      const base = resolveBackendBase();
+      if (!base) throw new Error("Backend base URL not configured");
+      const res = await fetch(`${base}/api/notifications/hide/all`, {
+        method: "PATCH",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!res.ok) throw new Error("Failed to hide all");
+    },
+    onSuccess: () => queryClient.invalidateQueries(["getNotifications"]),
+  });
 
   const handleAllReadFunc = () => {
     markAllRead();
@@ -64,7 +112,7 @@ const NotificationsBox = ({
     return desc.length > 10 ? desc.slice(0, 10) + "..." : desc;
   };
 
-  if (notificationLoading) {
+  if (notificationLoading && enabled) {
     return (
       <Box
         sx={{ p: 2, maxHeight: 500, display: "flex", flexDirection: "column" }}
@@ -85,7 +133,7 @@ const NotificationsBox = ({
     );
   }
 
-  if (notificationError) {
+  if (notificationError && enabled) {
     return (
       <Box
         sx={{
@@ -104,6 +152,7 @@ const NotificationsBox = ({
   }
 
   if (
+    enabled &&
     !notificationLoading &&
     !notificationError &&
     notificationsData.length === 0
