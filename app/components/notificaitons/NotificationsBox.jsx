@@ -41,24 +41,48 @@ const timeAgo = (ts) => {
   return d + "d";
 };
 
-const NotificationsBox = ({
-  notificationError,
-  notificationsData,
-  notificationLoading,
-}) => {
+const NotificationsBox = (
+  {
+    // notificationError,
+    // notificationsData,
+    // notificationLoading,
+  }
+) => {
   const theme = useTheme();
-  // const [notificationsData, setNotificationsData] = useState([]);
+  const [notificationsData, setNotificationsData] = useState([]);
 
-  // const { isLoading: notificationLoading, data, error } = useGetNotifications();
+  const {
+    isLoading: notificationLoading,
+    data,
+    error: notificationError,
+  } = useQuery({
+    queryKey: ["getNotifications"],
+    queryFn: async () => {
+      const res = await fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/notifications`
+          : `${process.env.PROD_BACKEND}/api/notifications`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      if (!res.ok) {
+        throw new Error("Network response was not ok");
+      }
+      return res.json();
+    },
+  });
 
-  // useEffect(() => {
-  //   if (data) {
-  //     const filteredNotifications = data.notifications.filter(
-  //       (n) => !n.hideMark === true
-  //     );
-  //     setNotificationsData(filteredNotifications);
-  //   }
-  // }, [data]);
+  useEffect(() => {
+    if (data) {
+      const filteredNotifications = data.notifications.filter(
+        (n) => !n.hideMark === true
+      );
+      setNotificationsData(filteredNotifications);
+    }
+  }, [data]);
 
   const { mutate: markAllRead, isLoading: isMarkAllRead } =
     useMarkAllReadNotifications();
