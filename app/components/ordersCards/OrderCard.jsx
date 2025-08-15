@@ -425,12 +425,13 @@ const OrderCard = ({
                 disabled={!itemAllServed || !paymentType}
                 sx={{
                   background: "linear-gradient(90deg, #ff5722, #ff9800)",
+                  color: "#ffffff",
                   "&:hover": {
                     background: "linear-gradient(90deg, #e64a19, #f57c00)",
                   },
                   "&.Mui-disabled": {
                     background: "linear-gradient(90deg, #ffccbc, #ffe0b2)",
-                    color: "#a5a5a5",
+                    color: "#ffffff",
                     opacity: 0.7,
                     cursor: "not-allowed",
                   },

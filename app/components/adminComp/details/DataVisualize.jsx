@@ -47,7 +47,7 @@ const DataVisualize = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(theme.breakpoints.between("sm", "md"));
-  const [timeRange, setTimeRange] = useState("overall");
+  const [timeRange, setTimeRange] = useState("today");
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [animate, setAnimate] = useState(false);
 
