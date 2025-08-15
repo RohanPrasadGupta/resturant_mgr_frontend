@@ -69,26 +69,21 @@ const ItemCard = ({ data }) => {
     refetch,
   } = useQuery({
     queryKey: ["fetchTableData", tableNumber],
-    queryFn: () =>
-      fetch(
+    queryFn: async () => {
+      if (!tableNumber) return null; // No request
+      const res = await fetch(
         process.env.NODE_ENV === "development"
           ? `${process.env.LOCAL_BACKEND}/api/table/${tableNumber}`
           : `${process.env.PROD_BACKEDN}/api/table/${tableNumber}`,
         {
           method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
         }
-      ).then((res) => {
-        if (!res.ok) {
-          throw new Error("Failed to fetch table data");
-        }
-        return res.json();
-      }),
-    enabled: !!tableNumber,
-    refetchOnWindowFocus: true,
+      );
+      if (!res.ok) throw new Error("Failed to fetch table data");
+      return res.json();
+    },
   });
 
   const { mutate: handleAddOrder, isPending } = useMutation({
@@ -352,6 +347,9 @@ const ItemCard = ({ data }) => {
     >
       <Box className={styles.cardMediaContainer}>
         <Chip
+          sx={{
+            color: "white",
+          }}
           label={category}
           size="small"
           className={classNames(styles.categoryChip, {
