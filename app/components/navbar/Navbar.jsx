@@ -84,7 +84,7 @@ const Navbar = () => {
     isLoading: notificationLoading,
     data: notificationData,
     error: notificationError,
-  } = useGetNotifications();
+  } = useGetNotifications({ enabled: isAdmin });
 
   useEffect(() => {
     if (notificationData) {

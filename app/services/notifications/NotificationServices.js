@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useGetNotifications() {
+export function useGetNotifications(options = {}) {
   return useQuery({
     queryKey: ["getNotifications"],
     queryFn: async () => {
@@ -14,7 +14,6 @@ export function useGetNotifications() {
           headers: { "Content-Type": "application/json" },
         }
       );
-
       if (!res.ok) {
         throw new Error("Network response was not ok");
       }
@@ -24,6 +23,7 @@ export function useGetNotifications() {
     refetchOnMount: true,
     staleTime: 15000,
     cacheTime: 0,
+    ...options,
   });
 }
 
