@@ -66,6 +66,7 @@ const NotificationsBox = (
           method: "GET",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
+          refetchOnWindowFocus: 'always',
         }
       );
       if (!res.ok) {
