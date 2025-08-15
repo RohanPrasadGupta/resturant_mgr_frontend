@@ -33,6 +33,23 @@ const page = () => {
   //   setIsLoading(false);
   // }, []);
 
+  const fetchAllorders = async () => {
+    try {
+      const response = await axios.get(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/orders`
+          : `${process.env.PROD_BACKEDN}/api/orders`,
+        { withCredentials: true }
+      );
+      return response.data;
+    } catch (err) {
+      if (err.response?.status === 401) {
+        throw new Error("UNAUTHORIZED");
+      }
+      throw new Error(err.response?.data?.message || "Failed to fetch orders");
+    }
+  };
+
   const {
     isLoading: allOrderLoading,
     data,
@@ -40,24 +57,7 @@ const page = () => {
     refetch,
   } = useQuery({
     queryKey: ["getAllOrder"],
-    queryFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/orders`
-          : `${process.env.PROD_BACKEND}/api/orders`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-        }
-      );
-
-      if (!res.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-
-      return res.json();
-    },
+    queryFn: fetchAllorders,
   });
 
   const deleteItemOrder = async (itemId) => {
