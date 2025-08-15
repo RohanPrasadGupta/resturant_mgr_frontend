@@ -16,12 +16,14 @@ import React, { useState, useEffect } from "react";
 import DataVisualize from "./details/DataVisualize";
 import UserAccess from "./details/UserAccess";
 import MenuItems from "./details/MenuItems";
+import AllConfirmedOrders from "./details/AllConfirmedOrders";
 import AdminNav from "./AdminNav";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
 import { io } from "socket.io-client";
 import toast from "react-hot-toast";
 import WidgetsIcon from "@mui/icons-material/Widgets";
+import ChecklistRtlIcon from "@mui/icons-material/ChecklistRtl";
 
 const socket = io(
   process.env.NODE_ENV === "development"
@@ -33,8 +35,6 @@ const AdminBody = () => {
   const [selectedTab, setSelectedTab] = useState("visualize");
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [navOpen, setNavOpen] = useState(!isMobile);
-  const [contentInView, setContentInView] = useState(true);
 
   useEffect(() => {
     socket.emit("register-admin");
@@ -57,18 +57,8 @@ const AdminBody = () => {
     };
   }, []);
 
-  useEffect(() => {
-    setNavOpen(!isMobile);
-  }, [isMobile]);
-
   const handleTabChange = (tab) => {
     setSelectedTab(tab);
-    if (isMobile) {
-      setNavOpen(false);
-    }
-  };
-  const toggleNav = () => {
-    setNavOpen(!navOpen);
   };
 
   return (
@@ -85,59 +75,6 @@ const AdminBody = () => {
         overflow: "hidden",
       }}
     >
-      {isMobile && (
-        <SpeedDial
-          ariaLabel="Admin actions"
-          sx={{
-            position: "fixed",
-            bottom: 20,
-            right: 20,
-            zIndex: 1200,
-            "& .MuiFab-primary": {
-              background: "linear-gradient(45deg, #ff9800, #ff5722)",
-              color: "#fff",
-            },
-          }}
-          icon={<WidgetsIcon sx={{ color: "#fff" }} />}
-        >
-          <SpeedDialAction
-            icon={<DashboardIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="Dashboard"
-            onClick={() => handleTabChange("visualize")}
-            sx={{
-              background: "linear-gradient(45deg, #ff9800, #ff5722)",
-              color: "#fff",
-              boxShadow:
-                selectedTab === "visualize" ? "0 0 0 2px #ff9800" : undefined,
-            }}
-          />
-          <SpeedDialAction
-            icon={<PeopleIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="User Settings"
-            onClick={() => handleTabChange("userSettings")}
-            sx={{
-              background: "linear-gradient(45deg, #ff9800, #ff5722)",
-              color: "#fff",
-              boxShadow:
-                selectedTab === "userSettings"
-                  ? "0 0 0 2px #ff9800"
-                  : undefined,
-            }}
-          />
-          <SpeedDialAction
-            icon={<RestaurantMenuIcon sx={{ color: "#fff" }} />}
-            tooltipTitle="Menu Settings"
-            onClick={() => handleTabChange("menuItems")}
-            sx={{
-              background: "linear-gradient(45deg, #ff9800, #ff5722)",
-              color: "#fff",
-              boxShadow:
-                selectedTab === "menuItems" ? "0 0 0 2px #ff9800" : undefined,
-            }}
-          />
-        </SpeedDial>
-      )}
-
       <Box
         sx={{
           display: "flex",
@@ -148,54 +85,128 @@ const AdminBody = () => {
         }}
       >
         {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={navOpen}
-            onClose={() => setNavOpen(false)}
-            ModalProps={{
-              keepMounted: true,
-            }}
+          <SpeedDial
+            ariaLabel="Admin actions"
             sx={{
-              "& .MuiDrawer-paper": {
-                width: "280px",
-                boxSizing: "border-box",
-                backgroundColor:
-                  theme.palette.mode === "dark"
-                    ? theme.palette.background.paper
-                    : "#fff",
-                backgroundImage:
-                  theme.palette.mode === "dark"
-                    ? "linear-gradient(rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.05))"
-                    : "none",
-                boxShadow: "0 0 20px rgba(0,0,0,0.1)",
-                zIndex: 1100,
-                border: "none",
-              },
-              zIndex: 1100,
+              position: "fixed",
+              bottom: 20,
+              right: 20,
+              zIndex: 1200,
             }}
+            icon={<WidgetsIcon sx={{ color: "#fff" }} />}
           >
-            <AdminNav
-              setSelectedTab={handleTabChange}
-              selectedTab={selectedTab}
-              isMobileDrawer={true}
+            <SpeedDialAction
+              sx={{
+                "& .MuiSpeedDialAction-staticTooltipLabel": {
+                  whiteSpace: "nowrap",
+                },
+                "& .MuiSpeedDialAction-fab": {
+                  background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                },
+              }}
+              icon={
+                <ChecklistRtlIcon
+                  sx={{
+                    color: "#fff",
+                  }}
+                />
+              }
+              slotProps={{
+                tooltip: {
+                  open: true,
+                  title: "Completed Orders",
+                },
+              }}
+              onClick={() => handleTabChange("completedOrders")}
             />
-          </Drawer>
+            <SpeedDialAction
+              sx={{
+                "& .MuiSpeedDialAction-staticTooltipLabel": {
+                  whiteSpace: "nowrap",
+                },
+                "& .MuiSpeedDialAction-fab": {
+                  background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                },
+              }}
+              icon={
+                <PeopleIcon
+                  sx={{
+                    color: "#fff",
+                  }}
+                />
+              }
+              slotProps={{
+                tooltip: {
+                  open: true,
+                  title: "User Settings",
+                },
+              }}
+              onClick={() => handleTabChange("userSettings")}
+            />
+            <SpeedDialAction
+              sx={{
+                "& .MuiSpeedDialAction-staticTooltipLabel": {
+                  whiteSpace: "nowrap",
+                },
+                "& .MuiSpeedDialAction-fab": {
+                  background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                },
+              }}
+              icon={
+                <RestaurantMenuIcon
+                  sx={{
+                    color: "#fff",
+                  }}
+                />
+              }
+              slotProps={{
+                tooltip: {
+                  open: true,
+                  title: "Menu Settings",
+                },
+              }}
+              onClick={() => handleTabChange("menuItems")}
+            />
+
+            <SpeedDialAction
+              sx={{
+                "& .MuiSpeedDialAction-staticTooltipLabel": {
+                  whiteSpace: "nowrap",
+                },
+                "& .MuiSpeedDialAction-fab": {
+                  background: "linear-gradient(45deg, #ff9800, #ff5722)",
+                },
+              }}
+              icon={
+                <DashboardIcon
+                  sx={{
+                    color: "#fff",
+                  }}
+                />
+              }
+              slotProps={{
+                tooltip: {
+                  open: true,
+                  title: "Dashboard",
+                },
+              }}
+              onClick={() => handleTabChange("visualize")}
+            />
+          </SpeedDial>
         ) : (
           <Box
             sx={{
-              width: { xs: "100%", md: navOpen ? "280px" : "0px" },
-              minWidth: { md: navOpen ? "280px" : "0px" },
+              width: "280px",
+              minWidth: "280px",
               backgroundColor:
                 theme.palette.mode === "dark"
                   ? theme.palette.background.paper
                   : "#fff",
-              borderRight: navOpen
-                ? `1px solid ${
-                    theme.palette.mode === "dark"
-                      ? alpha(theme.palette.divider, 0.6)
-                      : "#e9ecef"
-                  }`
-                : "none",
+              borderRight: `1px solid ${
+                theme.palette.mode === "dark"
+                  ? alpha(theme.palette.divider, 0.6)
+                  : "#e9ecef"
+              }`,
               transition: "all 0.3s ease",
               position: "sticky",
               top: 0,
@@ -216,12 +227,10 @@ const AdminBody = () => {
               zIndex: 10,
             }}
           >
-            {navOpen && (
-              <AdminNav
-                setSelectedTab={handleTabChange}
-                selectedTab={selectedTab}
-              />
-            )}
+            <AdminNav
+              setSelectedTab={handleTabChange}
+              selectedTab={selectedTab}
+            />
           </Box>
         )}
 
@@ -264,6 +273,7 @@ const AdminBody = () => {
               {selectedTab === "visualize" && <DataVisualize />}
               {selectedTab === "userSettings" && <UserAccess />}
               {selectedTab === "menuItems" && <MenuItems />}
+              {selectedTab === "completedOrders" && <AllConfirmedOrders />}
             </Box>
           </Fade>
         </Box>

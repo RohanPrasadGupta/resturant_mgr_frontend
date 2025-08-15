@@ -50,18 +50,24 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import LightModeIcon from "@mui/icons-material/LightMode";
 import { ColorModeContext } from "../../theme/ColorModeContext";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import NotificationsBox from "../../components/notificaitons/NotificationsBox";
+import ClickAwayListener from "@mui/material/ClickAwayListener";
+import CircleIcon from "@mui/icons-material/Circle";
+import { useGetNotifications } from "../../services/notifications/NotificationServices";
 
 const Navbar = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [signInClicked, setSignInClicked] = useState(false);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [notificationsData, setNotificationsData] = useState([]);
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const dispatch = useDispatch();
   const userData = useSelector((state) => state.selectedUser.value);
-  const router = useRouter();
   const queryClient = useQueryClient();
   const colorMode = useContext(ColorModeContext);
 
@@ -73,6 +79,21 @@ const Navbar = () => {
   const isAdmin = userData?.username === "admin";
 
   const isActive = (path) => pathname === path;
+
+  const {
+    isLoading: notificationLoading,
+    data: notificationData,
+    error: notificationError,
+  } = useGetNotifications();
+
+  useEffect(() => {
+    if (notificationData) {
+      const filteredNotifications =
+        notificationData?.notifications?.filter((n) => !n.hideMark === true) ||
+        [];
+      setNotificationsData(filteredNotifications);
+    }
+  }, [notificationData]);
 
   const {
     isLoading,
@@ -133,7 +154,6 @@ const Navbar = () => {
   const handleTableChange = (event) => {
     const newTable = event.target.value;
     dispatch(updateTableNumberRedux(newTable));
-    // Persist updated table number alongside existing stored user data
     try {
       if (typeof window !== "undefined") {
         const existing = JSON.parse(
@@ -147,7 +167,6 @@ const Navbar = () => {
     } catch (e) {
       console.warn("Failed to persist tableNumber", e);
     }
-    // Invalidate any table-related queries so dependent components refetch
     queryClient.invalidateQueries({ queryKey: ["fetchTableData"] });
     queryClient.invalidateQueries({ queryKey: ["currentOrder"] });
   };
@@ -168,13 +187,21 @@ const Navbar = () => {
     logoutUser();
   };
 
+  const handleNotificationClick = () => {
+    setNotificationOpen((prev) => !prev);
+  };
+
+  const handleCloseNotification = () => {
+    setNotificationOpen(false);
+  };
+
   const navItems = [
     { name: "Home", path: "/pages/home", icon: <HomeIcon />, showBtn: true },
     {
       name: "Orders",
       path: isStaff ? "/pages/allOrder" : "/pages/order",
       icon: <ShoppingBagIcon />,
-      showBtn: true,
+      showBtn: isStaff ? true : false,
     },
     {
       name: "Admin",
@@ -187,6 +214,11 @@ const Navbar = () => {
   const drawer = (
     <Box
       className={styles.drawerContainer}
+      sx={{
+        background: isMobile
+          ? "none"
+          : "linear-gradient(135deg, #ff5722, #ff9800)",
+      }}
       onClick={(e) => e.stopPropagation()}
     >
       <Box
@@ -357,47 +389,38 @@ const Navbar = () => {
           <Box className={styles.navSection}>
             {!isMobile && (
               <Box className={styles.tableSelectWrapper}>
-                {isCustomer ? (
-                  <Box className={styles.customerTableDisplay}>
-                    <TableRestaurantIcon className={styles.tableIcon} />
-                    <Typography variant="body2">
-                      Table: {userData.tableNumber || "Not selected"}
-                    </Typography>
-                  </Box>
-                ) : (
-                  <>
-                    {isStaff && tables?.length > 0 && (
-                      <FormControl
-                        variant="outlined"
-                        size="small"
-                        className={styles.tableSelectContainer}
-                        error={isError}
-                      >
-                        <InputLabel
-                          id="table-select-label"
-                          className={styles.tableSelectLabel}
-                        >
-                          Table
-                        </InputLabel>
-                        <Select
-                          labelId="table-select-label"
-                          value={userData.tableNumber}
-                          onChange={handleTableChange}
-                          label="Table"
-                          className={styles.tableSelect}
-                          startAdornment={
-                            <TableRestaurantIcon className={styles.tableIcon} />
-                          }
-                          disabled={isLoading}
-                        >
-                          <MenuItem value="">
-                            <em>Select Table</em>
-                          </MenuItem>
-                          {Array.isArray(tables) && isStaff
-                            ? tables.map((table) => (
-                                <MenuItem key={table._id} value={table.number}>
-                                  {table.number}{" "}
-                                  {/* {table.status !== "available" && (
+                {isStaff && tables?.length > 0 && (
+                  <FormControl
+                    variant="outlined"
+                    size="small"
+                    className={styles.tableSelectContainer}
+                    error={isError}
+                  >
+                    <InputLabel
+                      id="table-select-label"
+                      className={styles.tableSelectLabel}
+                    >
+                      Table
+                    </InputLabel>
+                    <Select
+                      labelId="table-select-label"
+                      value={userData.tableNumber}
+                      onChange={handleTableChange}
+                      label="Table"
+                      className={styles.tableSelect}
+                      startAdornment={
+                        <TableRestaurantIcon className={styles.tableIcon} />
+                      }
+                      disabled={isLoading}
+                    >
+                      <MenuItem value="">
+                        <em>Select Table</em>
+                      </MenuItem>
+                      {Array.isArray(tables) && isStaff
+                        ? tables.map((table) => (
+                            <MenuItem key={table._id} value={table.number}>
+                              {table.number}{" "}
+                              {/* {table.status !== "available" && (
                                     <FiberManualRecordIcon
                                       sx={{
                                         color: "green",
@@ -406,13 +429,11 @@ const Navbar = () => {
                                       }}
                                     />
                                   )} */}
-                                </MenuItem>
-                              ))
-                            : null}
-                        </Select>
-                      </FormControl>
-                    )}
-                  </>
+                            </MenuItem>
+                          ))
+                        : null}
+                    </Select>
+                  </FormControl>
                 )}
 
                 {isLoading && (
@@ -426,27 +447,63 @@ const Navbar = () => {
 
             {isMobile ? (
               <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <IconButton
-                  onClick={colorMode.toggleColorMode}
-                  aria-label="toggle light/dark mode"
-                  className={styles.mobileModeToggle}
-                  size="large"
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1,
+                    alignItems: "center",
+                  }}
                 >
-                  {theme.palette.mode === "dark" ? (
-                    <LightModeIcon fontSize="small" />
-                  ) : (
-                    <DarkModeIcon fontSize="small" />
+                  {isAdmin && (
+                    <Box
+                      sx={{
+                        mt: "auto",
+                        p: 2,
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <IconButton
+                        onClick={handleNotificationClick}
+                        size="large"
+                        sx={{
+                          position: "relative",
+                          backgroundColor: theme.palette.primary.main,
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
+                        {notificationsData && notificationsData.length > 0 && (
+                          <CircleIcon
+                            sx={{
+                              position: "absolute",
+                              top: 6,
+                              right: 6,
+                              fontSize: "0.8rem",
+                              color: "green",
+                              zIndex: 2,
+                            }}
+                          />
+                        )}
+
+                        <NotificationsIcon />
+                      </IconButton>
+                    </Box>
                   )}
-                </IconButton>
-                <IconButton
-                  color="inherit"
-                  aria-label="open drawer"
-                  edge="start"
-                  onClick={handleDrawerToggle}
-                  className={styles.menuButton}
-                >
-                  <MenuIcon />
-                </IconButton>
+
+                  <IconButton
+                    color="inherit"
+                    aria-label="open drawer"
+                    edge="start"
+                    onClick={handleDrawerToggle}
+                    className={styles.menuButton}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                </Box>
               </Box>
             ) : (
               <Box className={styles.desktopMenu}>
@@ -481,69 +538,85 @@ const Navbar = () => {
                       <DarkModeIcon />
                     )}
                   </IconButton>
+
+                  {isAdmin && (
+                    <Box
+                      sx={{
+                        mt: "auto",
+                        p: 2,
+                        display: "flex",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <IconButton
+                        onClick={handleNotificationClick}
+                        size="large"
+                        sx={{
+                          position: "relative",
+                          backgroundColor: theme.palette.primary.main,
+                          color: "#fff",
+                          "&:hover": {
+                            backgroundColor: theme.palette.primary.dark,
+                          },
+                        }}
+                      >
+                        {notificationsData && notificationsData.length > 0 && (
+                          <CircleIcon
+                            sx={{
+                              position: "absolute",
+                              top: 6,
+                              right: 6,
+                              fontSize: "0.8rem",
+                              color: "green",
+                              zIndex: 2,
+                            }}
+                          />
+                        )}
+
+                        <NotificationsIcon />
+                      </IconButton>
+                    </Box>
+                  )}
                 </Box>
 
-                {isCustomer ? (
+                {isStaff ? (
                   <Box
                     sx={{
                       display: "flex",
                       alignItems: "center",
                       cursor: "pointer",
                     }}
+                    onClick={handleLogoutClick}
                   >
-                    <AccountCircleIcon
+                    <IconButton
+                      aria-label="Account / Logout"
+                      size="large"
                       sx={{
                         color:
                           theme.palette.mode === "light" ? "#fff" : "inherit",
                       }}
-                    />
+                      onClick={handleLogoutClick}
+                    >
+                      <AccountCircleIcon
+                        sx={{
+                          color:
+                            theme.palette.mode === "light" ? "#fff" : "inherit",
+                        }}
+                      />
+                    </IconButton>
                   </Box>
                 ) : (
-                  <>
-                    {isStaff ? (
-                      <Box
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          cursor: "pointer",
-                        }}
-                        onClick={handleLogoutClick}
-                      >
-                        <IconButton
-                          aria-label="Account / Logout"
-                          size="large"
-                          sx={{
-                            color:
-                              theme.palette.mode === "light"
-                                ? "#fff"
-                                : "inherit",
-                          }}
-                          onClick={handleLogoutClick}
-                        >
-                          <AccountCircleIcon
-                            sx={{
-                              color:
-                                theme.palette.mode === "light"
-                                  ? "#fff"
-                                  : "inherit",
-                            }}
-                          />
-                        </IconButton>
-                      </Box>
-                    ) : (
-                      <Button
-                        variant="contained"
-                        color="primary"
-                        className={`${styles.signInButton} ${
-                          isActive("/signin") ? styles.activeSignInButton : ""
-                        }`}
-                        startIcon={<PersonIcon />}
-                        onClick={() => setSignInClicked(true)}
-                      >
-                        Sign In
-                      </Button>
-                    )}
-                  </>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    className={`${styles.signInButton} ${
+                      isActive("/signin") ? styles.activeSignInButton : ""
+                    }`}
+                    startIcon={<PersonIcon />}
+                    onClick={() => setSignInClicked(true)}
+                  >
+                    Sign In
+                  </Button>
                 )}
               </Box>
             )}
@@ -625,9 +698,15 @@ const Navbar = () => {
           }}
         >
           <Box
-            sx={{ height: "100%", display: "flex", flexDirection: "column" }}
+            sx={{
+              height: "100%",
+              display: "flex",
+              flexDirection: "column",
+              background: "linear-gradient(45deg, #ff9800, #ff5722)",
+            }}
           >
             {drawer}
+
             <Box
               sx={{
                 mt: "auto",
@@ -636,24 +715,23 @@ const Navbar = () => {
                 justifyContent: "center",
               }}
             >
-              <Button
+              <IconButton
                 onClick={colorMode.toggleColorMode}
-                variant="outlined"
-                size="small"
+                aria-label="toggle light/dark mode"
                 sx={{
-                  borderColor: "rgba(255,255,255,0.6)",
-                  color: "white",
-                  textTransform: "none",
-                  fontWeight: 600,
-                  backdropFilter: "blur(2px)",
+                  backgroundColor: theme.palette.primary.main,
+                  color: "#fff",
                   "&:hover": {
-                    borderColor: "#fff",
-                    backgroundColor: "rgba(255,255,255,0.15)",
+                    backgroundColor: theme.palette.primary.dark,
                   },
                 }}
               >
-                {theme.palette.mode === "dark" ? "Light Mode" : "Dark Mode"}
-              </Button>
+                {theme.palette.mode === "dark" ? (
+                  <LightModeIcon />
+                ) : (
+                  <DarkModeIcon />
+                )}
+              </IconButton>
             </Box>
           </Box>
         </Drawer>
@@ -668,6 +746,35 @@ const Navbar = () => {
             <SignIn handleClose={handleClose} />
           </Box>
         </Modal>
+      )}
+      {notificationOpen && (
+        <ClickAwayListener onClickAway={handleCloseNotification}>
+          <Box
+            sx={{
+              position: "fixed",
+              top: "80px",
+              right: "20px",
+              minHeight: "150px",
+              maxHeight: "500px",
+              width: "350px",
+              backgroundColor: theme.palette.background.paper,
+              boxShadow: "0 4px 20px rgba(0,0,0,0.2)",
+              borderRadius: "14px",
+              zIndex: 1300,
+              animation: "slideIn 0.3s ease-out",
+              "@keyframes slideIn": {
+                from: { transform: "translateX(100%)", opacity: 0 },
+                to: { transform: "translateX(0)", opacity: 1 },
+              },
+            }}
+          >
+            <NotificationsBox
+              notificationError={notificationError}
+              notificationsData={notificationsData}
+              notificationLoading={notificationLoading}
+            />
+          </Box>
+        </ClickAwayListener>
       )}
     </>
   );

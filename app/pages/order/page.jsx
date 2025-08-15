@@ -117,6 +117,7 @@ const OrderPage = () => {
                 boxShadow: "0 4px 10px rgba(255, 87, 34, 0.3)",
                 textTransform: "none",
                 fontWeight: 600,
+                color: "white",
                 "&:hover": {
                   boxShadow: "0 6px 15px rgba(255, 87, 34, 0.4)",
                   transform: "translateY(-2px)",
