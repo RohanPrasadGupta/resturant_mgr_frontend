@@ -33,41 +33,32 @@ const page = () => {
   //   setIsLoading(false);
   // }, []);
 
-  const getOrder = async () => {
-    const response = await axios.get(
-      process.env.NODE_ENV === "development"
-        ? `${process.env.LOCAL_BACKEND}/api/orders`
-        : `${process.env.PROD_BACKEDN}/api/orders`,
-      {
-        withCredentials: true,
-      }
-    );
-    if (response.data.error) {
-      throw new Error(response.data.error);
-    }
-
-    return response.data.orders || [];
-  };
-
   const {
-    isLoading: dataLoading,
+    isLoading: allOrderLoading,
     data,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["getOrder"],
-    queryFn: getOrder,
-    refetchOnWindowFocus: false,
-    refetchOnMount: true,
-    refetchInterval: false,
-    staleTime: 0,
-    cacheTime: 0,
-  });
+    queryKey: ["getAllOrder"],
+    queryFn: async () => {
+      const res = await fetch(
+        process.env.NODE_ENV === "development"
+          ? `${process.env.LOCAL_BACKEND}/api/orders`
+          : `${process.env.PROD_BACKEND}/api/orders`,
+        {
+          method: "GET",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
 
-  useEffect(() => {
-    console.log("Data fetched:", data);
-    console.log("Data error:", error);
-  }, [data, error]);
+      if (!res.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      return res.json();
+    },
+  });
 
   const deleteItemOrder = async (itemId) => {
     const response = await axios.put(
@@ -88,7 +79,7 @@ const page = () => {
     mutationFn: deleteItemOrder,
     onSuccess: async () => {
       toast.success("Item deleted successfully!");
-      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      await queryClient.refetchQueries({ queryKey: ["getAllOrder"] });
       refetch();
     },
     onError: (error) => {
@@ -109,7 +100,7 @@ const page = () => {
       ),
     onSuccess: async () => {
       toast.success("Item deleted successfully!");
-      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      await queryClient.refetchQueries({ queryKey: ["getAllOrder"] });
       refetch();
     },
     onError: (error) => {
@@ -131,7 +122,7 @@ const page = () => {
         ),
       onSuccess: async (data) => {
         toast.success("Table Served");
-        await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+        await queryClient.refetchQueries({ queryKey: ["getAllOrder"] });
         refetch();
       },
       onError: (error) => {
@@ -163,7 +154,7 @@ const page = () => {
     },
     onSuccess: async () => {
       toast.success("Order Completed");
-      await queryClient.refetchQueries({ queryKey: ["getOrder"] });
+      await queryClient.refetchQueries({ queryKey: ["getAllOrder"] });
       refetch();
     },
     onError: (error) => {
@@ -188,7 +179,7 @@ const page = () => {
     deleteItemMutation.mutate(itemId);
   };
 
-  if (dataLoading) return <LoaderComp />;
+  if (allOrderLoading) return <LoaderComp />;
 
   if (error) {
     return (
