@@ -84,16 +84,18 @@ const Navbar = () => {
     isLoading: notificationLoading,
     data: notificationData,
     error: notificationError,
-  } = useGetNotifications();
+  } = useGetNotifications({ enabled: isAdmin && notificationOpen });
 
   useEffect(() => {
-    if (notificationData) {
-      const filteredNotifications =
-        notificationData?.notifications?.filter((n) => !n.hideMark === true) ||
-        [];
-      setNotificationsData(filteredNotifications);
+    if (notificationData?.notifications) {
+      const filtered = notificationData.notifications.filter(
+        (n) => !n.hideMark === true
+      );
+      setNotificationsData(filtered);
+    } else if (!notificationOpen) {
+      // When panel closed, keep existing notifications but don't clear (avoid flicker)
     }
-  }, [notificationData]);
+  }, [notificationData, notificationOpen]);
 
   const {
     isLoading,
@@ -475,6 +477,7 @@ const Navbar = () => {
                             backgroundColor: theme.palette.primary.dark,
                           },
                         }}
+                        aria-label={`notifications ${notificationsData.length} items`}
                       >
                         {notificationsData && notificationsData.length > 0 && (
                           <CircleIcon
@@ -559,6 +562,7 @@ const Navbar = () => {
                             backgroundColor: theme.palette.primary.dark,
                           },
                         }}
+                        aria-label={`notifications ${notificationsData.length} items`}
                       >
                         {notificationsData && notificationsData.length > 0 && (
                           <CircleIcon

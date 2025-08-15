@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React from "react";
 import {
   Alert,
   Box,
@@ -18,11 +18,9 @@ import {
   useTheme,
   alpha,
 } from "@mui/material";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DoneAllIcon from "@mui/icons-material/DoneAll";
 import DeleteSweepIcon from "@mui/icons-material/DeleteSweep";
 import {
-  useGetNotifications,
   useMarkAllReadNotifications,
   useMarkAllHideNotifications,
 } from "../../services/notifications/NotificationServices";
@@ -41,49 +39,12 @@ const timeAgo = (ts) => {
   return d + "d";
 };
 
-const NotificationsBox = (
-  {
-    // notificationError,
-    // notificationsData,
-    // notificationLoading,
-  }
-) => {
+const NotificationsBox = ({
+  notificationsData = [],
+  notificationLoading,
+  notificationError,
+}) => {
   const theme = useTheme();
-  const [notificationsData, setNotificationsData] = useState([]);
-
-  const {
-    isLoading: notificationLoading,
-    data,
-    error: notificationError,
-  } = useQuery({
-    queryKey: ["getNotifications"],
-    queryFn: async () => {
-      const res = await fetch(
-        process.env.NODE_ENV === "development"
-          ? `${process.env.LOCAL_BACKEND}/api/notifications`
-          : `${process.env.PROD_BACKEND}/api/notifications`,
-        {
-          method: "GET",
-          credentials: "include",
-          headers: { "Content-Type": "application/json" },
-          refetchOnWindowFocus: 'always',
-        }
-      );
-      if (!res.ok) {
-        throw new Error("Network response was not ok");
-      }
-      return res.json();
-    },
-  });
-
-  useEffect(() => {
-    if (data) {
-      const filteredNotifications = data.notifications.filter(
-        (n) => !n.hideMark === true
-      );
-      setNotificationsData(filteredNotifications);
-    }
-  }, [data]);
 
   const { mutate: markAllRead, isLoading: isMarkAllRead } =
     useMarkAllReadNotifications();
@@ -142,7 +103,11 @@ const NotificationsBox = (
     );
   }
 
-  if (notificationsData.length === 0) {
+  if (
+    !notificationLoading &&
+    !notificationError &&
+    notificationsData.length === 0
+  ) {
     return (
       <Box
         sx={{
@@ -191,15 +156,17 @@ const NotificationsBox = (
         <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
           Notifications
         </Typography>
-        <Chip
-          label={notificationsData.length}
-          size="small"
-          sx={{
-            fontWeight: 600,
-            bgcolor: theme.palette.primary.main,
-            color: "#fff",
-          }}
-        />
+        {notificationsData.length > 0 && (
+          <Chip
+            label={notificationsData.length}
+            size="small"
+            sx={{
+              fontWeight: 600,
+              bgcolor: theme.palette.primary.main,
+              color: "#fff",
+            }}
+          />
+        )}
       </Box>
 
       <Box
