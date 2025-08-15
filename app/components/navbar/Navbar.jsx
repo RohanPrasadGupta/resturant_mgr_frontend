@@ -84,7 +84,7 @@ const Navbar = () => {
     isLoading: notificationLoading,
     data: notificationData,
     error: notificationError,
-  } = useGetNotifications({ enabled: isAdmin });
+  } = useGetNotifications();
 
   useEffect(() => {
     if (notificationData) {
@@ -130,7 +130,7 @@ const Navbar = () => {
       dispatch(logoutUserRedux());
       setLogoutDialogOpen(false);
       toast.success("Successfully logged out");
-      // window.location.reload();
+      window.location.reload();
     },
     onError: () => {
       toast.error("Logout failed.");
